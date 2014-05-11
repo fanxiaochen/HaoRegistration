@@ -1,0 +1,5 @@
+HaoRegistration
+===============
+
+It's an implementation of Hao Li's paper -- Global Correspondence Optimization for
+Non-Rigid Registration of Depth Scans in SGP08.
