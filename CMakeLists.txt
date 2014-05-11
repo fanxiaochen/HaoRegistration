@@ -1,5 +1,7 @@
-project(haoregistration)
+project(HaoRegistration)
 
-add_executable(haoregistration main.cpp)
+include_directories($ENV{EIGEN3_INCLUDE_DIR})
 
-install(TARGETS haoregistration RUNTIME DESTINATION bin)
+add_executable(HaoRegistration main.cpp)
+
+install(TARGETS HaoRegistration RUNTIME DESTINATION bin)
