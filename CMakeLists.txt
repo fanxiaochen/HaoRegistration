@@ -7,9 +7,11 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set(srcs    src/main.cpp
-            src/point_cloud.cpp)
+            src/point_cloud.cpp
+            src/deformation_graph.cpp)
             
-set(incs    include/point_cloud.h)
+set(incs    include/point_cloud.h
+            include/deformation_graph.h)
 
 add_executable(HaoRegistration ${srcs} ${incs})
 
