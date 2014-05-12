@@ -4,8 +4,8 @@
 #include <vector>
 
 #include <Eigen/Dense>
+#include <lemon/list_graph.h>
 
-#include "deformation_graph.h"
 
 class PointCloud{
 public:
@@ -14,7 +14,8 @@ public:
     
 private:
     std::vector<Eigen::Vector3d> point_cloud_; 
-    DeformationGraph* deformation_graph_;
+    ListGraph deformation_graph_;
+    ListGraph::NodeMap<size_t> index_;
 };
 
 #endif //POINT_CLOUD_H
