@@ -9,13 +9,16 @@
 
 class PointCloud{
 public:
+    typedef lemon::ListGraph DeformationGraph;
+  
+public:
     PointCloud();
     ~PointCloud();
     
 private:
     std::vector<Eigen::Vector3d> point_cloud_; 
-    ListGraph deformation_graph_;
-    ListGraph::NodeMap<size_t> index_;
+    DeformationGraph deformation_graph_;
+    DeformationGraph::NodeMap<size_t> index_;
 };
 
 #endif //POINT_CLOUD_H

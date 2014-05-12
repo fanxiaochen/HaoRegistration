@@ -2,6 +2,7 @@
 
 
 PointCloud::PointCloud()
+:index_(deformation_graph_)
 {
     
 }
