@@ -15,7 +15,7 @@ PointCloud::~PointCloud()
 void PointCloud::binding()
 {
     sampling();
-    buildEdges();
+    connecting();
 }
 
 void PointCloud::sampling()
@@ -33,16 +33,25 @@ void PointCloud::sampling()
     }
 }
 
-void PointCloud::buildEdges()
+void PointCloud::connecting()
 {
+    const int k = 4;
+    kNearestSearch(k);
     
+    for (size_t i = 0, i_end = point_cloud_.size(); i < i_end; i ++)
+    {
+        int* nearest_indices = nearest_neighbors_[i];
+        buildEdges(nearest_indices, k);
+    }
 }
 
-void PointCloud::kNearestSearch(int k)
+void PointCloud::kNearestSearch(const int& k)
 {
     flann::Matrix<double> data_set(new double[node_num_ * 3], node_num_, 3);
     flann::Matrix<double> query(new double[point_cloud_.size() * 3], point_cloud_.size(), 3);
     
+    // for the mapping between graph node indices and search results
+    std::map<size_t, size_t> index_mapping;
     size_t i = 0;
     for (DeformationGraph::NodeIt it(deformation_graph_); it != lemon::INVALID; ++ it, i ++)
     {
@@ -51,18 +60,43 @@ void PointCloud::kNearestSearch(int k)
             Eigen::Vector3d point = point_cloud_.at(node_index_[it]);
             data_set[i][j] = point(0,j);          
         }
+        index_mapping.insert(std::pair<size_t, size_t>(i, node_index_[it]));
     }
     
     flann::Matrix<int> indices(new int[query.rows * k], query.rows, k);
     flann::Matrix<double> dists(new double[query.rows * k], query.rows, k);
     
     // construct an randomized kd-tree index using 4 kd-trees
-    flann::Index<flann::L2<float> > index(data_set, flann::KDTreeIndexParams(4));
+    flann::Index<flann::L2<double> > index(data_set, flann::KDTreeIndexParams(4));
     index.buildIndex();
     // do a knn search, using 128 checks
     index.knnSearch(query, indices, dists, k, flann::SearchParams(128));
     
+    // replace indices with graph node indices
+    for (size_t i = 0, i_end = indices.rows; i < i_end; i ++)
+    {
+        for (size_t j = 0, j_end = indices.cols; j < j_end; j ++)
+        {
+            indices[i][j] = index_mapping[indices[i][j]];
+        }
+    }
+    
     nearest_neighbors_ = indices;
+}
+
+void PointCloud::buildEdges(int* start, const int& k)
+{
+    int* end = start + sizeof(int) * k;
+  
+    for (int* i = start; i < end; i ++)
+    {
+        
+        for (int* j = i + 1; j < end; j ++)
+        {
+            
+        }
+    }
+    
 }
 
 

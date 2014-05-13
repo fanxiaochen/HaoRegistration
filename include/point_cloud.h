@@ -20,9 +20,10 @@ public:
     
 private:
     virtual void sampling();
-    virtual void buildEdges();
+    virtual void connecting();
     
-    void kNearestSearch(int k);
+    void kNearestSearch(const int& k);
+    void buildEdges(int* start, const int& k);
  
     
 private:
