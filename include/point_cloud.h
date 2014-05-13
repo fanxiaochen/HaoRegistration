@@ -15,10 +15,14 @@ public:
     PointCloud();
     ~PointCloud();
     
+    void binding();
+    
 private:
     std::vector<Eigen::Vector3d> point_cloud_; 
     DeformationGraph deformation_graph_;
-    DeformationGraph::NodeMap<size_t> index_;
+    DeformationGraph::NodeMap<size_t> node_index_;
+    
+    size_t node_num_;
 };
 
 #endif //POINT_CLOUD_H
