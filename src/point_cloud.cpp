@@ -2,7 +2,7 @@
 
 
 PointCloud::PointCloud()
-    : node_index_(deformation_graph_)
+:graph_map_(&deformation_graph_)
 {
 
 }
@@ -29,7 +29,7 @@ void PointCloud::sampling()
     std::random_shuffle(index.begin(), index.end());
     for (size_t i = 0; i < node_num_; i ++) {
         DeformationGraph::Node node = deformation_graph_.addNode();
-        node_index_[node] = index.at(i);
+        graph_map_.insert((MapPair(node, index.at(i))));
     }
 }
 
@@ -57,10 +57,10 @@ void PointCloud::kNearestSearch(const int& k)
     {
         for (size_t j = 0; j < 3; j ++)
         {
-            Eigen::Vector3d point = point_cloud_.at(node_index_[it]);
+            Eigen::Vector3d point = point_cloud_.at(graph_map_[it]);
             data_set[i][j] = point(0,j);          
         }
-        index_mapping.insert(std::pair<size_t, size_t>(i, node_index_[it]));
+        index_mapping.insert(std::pair<size_t, size_t>(i, graph_map_[it]));
     }
     
     flann::Matrix<int> indices(new int[query.rows * k], query.rows, k);
