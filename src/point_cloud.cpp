@@ -38,11 +38,25 @@ void PointCloud::connecting()
     const int k = 4;
     kNearestSearch(k);
     
-    for (size_t i = 0, i_end = point_cloud_.size(); i < i_end; i ++)
+    std::set<Edge, CompareEdge> edges;
+    for (size_t t = 0, t_end = nearest_neighbors_.rows; t < t_end; t ++)
     {
-        int* nearest_indices = nearest_neighbors_[i];
-        buildEdges(nearest_indices, k);
+        for (size_t i = 0, i_end = nearest_neighbors_.cols - 1; i < i_end; i ++)
+        {
+            for (size_t j = i + 1, j_end = nearest_neighbors_.cols; j < j_end; j ++)
+            {
+                edges.insert(Edge(nearest_neighbors_[t][i], nearest_neighbors_[t][j]));
+            }          
+        }
     }
+    
+    for (std::set<Edge, CompareEdge>::iterator it = edges.begin(); it != edges.end(); it ++)
+    {
+        Edge edge = *it;
+        DeformationGraph::Node source = graph_map_[edge._source];
+        DeformationGraph::Node target = graph_map_[edge._target];
+        deformation_graph_.addEdge(source, target);
+    } 
 }
 
 void PointCloud::kNearestSearch(const int& k)
@@ -82,22 +96,6 @@ void PointCloud::kNearestSearch(const int& k)
     }
     
     nearest_neighbors_ = indices;
-}
-
-void PointCloud::buildEdges(int* start, const int& k)
-{
-    int* end = start + sizeof(int) * k;
-  
-    for (int* i = start; i < end; i ++)
-    {
-        DeformationGraph::Node source = graph_map_[*nearest_neighbors_[*i]];
-        for (int* j = i + 1; j < end; j ++)
-        {
-            DeformationGraph::Node target = graph_map_[*nearest_neighbors_[*j]];
-            deformation_graph_.addEdge(source, target);
-        }
-    }
-    
 }
 
 

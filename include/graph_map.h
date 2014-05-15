@@ -5,7 +5,6 @@
 
 #include <lemon/list_graph.h>
 
-
 class MapPair {
 public:
     MapPair();
