@@ -90,10 +90,11 @@ void PointCloud::buildEdges(int* start, const int& k)
   
     for (int* i = start; i < end; i ++)
     {
-        
+        DeformationGraph::Node source = graph_map_[*nearest_neighbors_[*i]];
         for (int* j = i + 1; j < end; j ++)
         {
-            
+            DeformationGraph::Node target = graph_map_[*nearest_neighbors_[*j]];
+            deformation_graph_.addEdge(source, target);
         }
     }
     
