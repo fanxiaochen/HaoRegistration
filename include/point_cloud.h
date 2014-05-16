@@ -28,11 +28,14 @@ private:
     
 private:
     std::vector<Eigen::Vector3d> point_cloud_; 
+    size_t node_num_;
     DeformationGraph deformation_graph_;
     GraphMap graph_map_;
   //  DeformationGraph::NodeMap<size_t> node_index_;
     flann::Matrix<int> nearest_neighbors_;
-    size_t node_num_;
+    
+    flann::Matrix<double> rigid_rot_;
+    flann::Matrix<double> rigid_trans_;
 };
 
 // to remove same edges because lemon can only support the mode of adding edges between same nodes
