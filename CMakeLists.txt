@@ -9,10 +9,14 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set(srcs    src/main.cpp
             src/point_cloud.cpp
-            src/graph_map.cpp)
+            src/graph_map.cpp
+            src/parameters.cpp
+            src/parameter_map.cpp)
             
 set(incs    include/point_cloud.h
-            include/graph_map.h)
+            include/graph_map.h
+            include/parameters.h
+            include/parameter_map.h)
 
 add_executable(HaoRegistration ${srcs} ${incs})
 

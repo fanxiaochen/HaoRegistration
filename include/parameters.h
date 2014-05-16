@@ -1,7 +1,7 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
-#include <flann/flann.hpp>
+#include <Eigen/Dense>
 #include <lemon/list_graph.h>
 
 class Parameters{
@@ -9,9 +9,8 @@ public:
     Parameters();
     ~Parameters();
 private:
-    lemon::ListGraph::Node node_;
     
-    flann::Matrix<double> affi_rot_;
-    flann::Matrix<double> affi_trans_;
+    Eigen::Matrix3d affi_rot_;
+    Eigen::Vector3d affi_trans_;
 };
 #endif //PARAMETERS_H

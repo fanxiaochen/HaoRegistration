@@ -2,18 +2,22 @@
 
 
 PointCloud::PointCloud()
-:graph_map_(&deformation_graph_)
 {
 
 }
 
 PointCloud::~PointCloud()
 {
-
+    delete deformation_graph_;
+    delete graph_map_;
+    delete nearest_neighbors_;
 }
 
 void PointCloud::binding()
 {
+    deformation_graph_ = new DeformationGraph();
+    graph_map_ = new GraphMap(deformation_graph_);
+    
     sampling();
     connecting();
 }
@@ -28,8 +32,8 @@ void PointCloud::sampling()
     // simple binding using random_shuffle, not the way in the original paper
     std::random_shuffle(index.begin(), index.end());
     for (size_t i = 0; i < node_num_; i ++) {
-        DeformationGraph::Node node = deformation_graph_.addNode();
-        graph_map_.insert((MapPair(node, index.at(i))));
+        DeformationGraph::Node node = deformation_graph_->addNode();
+        graph_map_->insert((GraphMap::MapPair(node, index.at(i))));
     }
 }
 
@@ -39,13 +43,13 @@ void PointCloud::connecting()
     kNearestSearch(k);
     
     std::set<Edge, CompareEdge> edges;
-    for (size_t t = 0, t_end = nearest_neighbors_.rows; t < t_end; t ++)
+    for (size_t t = 0, t_end = nearest_neighbors_->rows; t < t_end; t ++)
     {
-        for (size_t i = 0, i_end = nearest_neighbors_.cols - 1; i < i_end; i ++)
+        for (size_t i = 0, i_end = nearest_neighbors_->cols - 1; i < i_end; i ++)
         {
-            for (size_t j = i + 1, j_end = nearest_neighbors_.cols; j < j_end; j ++)
+            for (size_t j = i + 1, j_end = nearest_neighbors_->cols; j < j_end; j ++)
             {
-                edges.insert(Edge(nearest_neighbors_[t][i], nearest_neighbors_[t][j]));
+                edges.insert(Edge((*nearest_neighbors_)[t][i], (*nearest_neighbors_)[t][j]));
             }          
         }
     }
@@ -53,9 +57,9 @@ void PointCloud::connecting()
     for (std::set<Edge, CompareEdge>::iterator it = edges.begin(); it != edges.end(); it ++)
     {
         Edge edge = *it;
-        DeformationGraph::Node source = graph_map_[edge._source];
-        DeformationGraph::Node target = graph_map_[edge._target];
-        deformation_graph_.addEdge(source, target);
+        DeformationGraph::Node source = (*graph_map_)[edge._source];
+        DeformationGraph::Node target = (*graph_map_)[edge._target];
+        deformation_graph_->addEdge(source, target);
     } 
 }
 
@@ -67,14 +71,14 @@ void PointCloud::kNearestSearch(const int& k)
     // for the mapping between graph node indices and search results
     std::map<size_t, size_t> index_mapping;
     size_t i = 0;
-    for (DeformationGraph::NodeIt it(deformation_graph_); it != lemon::INVALID; ++ it, i ++)
+    for (DeformationGraph::NodeIt it(*deformation_graph_); it != lemon::INVALID; ++ it, i ++)
     {
         for (size_t j = 0; j < 3; j ++)
         {
-            Eigen::Vector3d point = point_cloud_.at(graph_map_[it]);
+            Eigen::Vector3d point = point_cloud_.at((*graph_map_)[it]);
             data_set[i][j] = point(0,j);          
         }
-        index_mapping.insert(std::pair<size_t, size_t>(i, graph_map_[it]));
+        index_mapping.insert(std::pair<size_t, size_t>(i, (*graph_map_)[it]));
     }
     
     flann::Matrix<int> indices(new int[query.rows * k], query.rows, k);
@@ -95,7 +99,7 @@ void PointCloud::kNearestSearch(const int& k)
         }
     }
     
-    nearest_neighbors_ = indices;
+    nearest_neighbors_ = new flann::Matrix<int>(indices.ptr(), indices.rows, indices.cols);
 }
 
 
