@@ -20,6 +20,8 @@ public:
     ~PointCloud();
 
     void binding();
+    
+    inline size_t getNodeSize(){return node_num_;}
 
 private:
     virtual void sampling();
