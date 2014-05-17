@@ -23,7 +23,7 @@ public:
         lemon::ListGraph::Node _key;
         int _value;
     };
-    
+
 public:
     typedef lemon::ListGraph::NodeIt Iterator;
     typedef lemon::ListGraph::Node Key;

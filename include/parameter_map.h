@@ -5,8 +5,9 @@
 
 #include "parameters.h"
 
-class ParameterMap{
-    
+class ParameterMap
+{
+public:
     class MapPair
     {
     public:
@@ -21,21 +22,21 @@ class ParameterMap{
         lemon::ListGraph::Node _key;
         Parameters _value;
     };
-    
+
 public:
     typedef lemon::ListGraph::NodeIt Iterator;
     typedef lemon::ListGraph::Node Key;
     typedef Parameters Value;
-    
+
 public:
-    ParameterMap(lemon::ListGraph* graph);
+    ParameterMap(lemon::ListGraph *graph);
     ~ParameterMap();
-    
+
     void insert(MapPair map_pair);
-    
+
     Value operator[](const Iterator &it);
     Value operator[](const Key &k);
-    
+
 private:
     lemon::ListGraph *_graph;
 

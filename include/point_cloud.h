@@ -8,64 +8,65 @@
 #include <flann/flann.hpp>
 
 #include "graph_map.h"
+#include "parameter_map.h"
 
-class PointCloud{
+class PointCloud
+{
 public:
     typedef lemon::ListGraph DeformationGraph;
-  
+
 public:
     PointCloud();
     ~PointCloud();
-    
+
     void binding();
-    
+
 private:
     virtual void sampling();
     virtual void connecting();
-    
-    void kNearestSearch(const int& k);
- 
-    
+    virtual void parameterize();
+
+    void kNearestSearch(const int &k);
+
+
 private:
-    std::vector<Eigen::Vector3d> point_cloud_; 
+    std::vector<Eigen::Vector3d> point_cloud_;
     size_t node_num_;
-    
-    DeformationGraph* deformation_graph_;
-    GraphMap* graph_map_;
- 
-    flann::Matrix<int>* nearest_neighbors_;
-    
+
+    DeformationGraph *deformation_graph_;
+    GraphMap *graph_map_;
+    ParameterMap *parameter_map_;
+
+    flann::Matrix<int> *nearest_neighbors_;
+
     Eigen::Matrix3d rigid_rot_;
     Eigen::Vector3d rigid_trans_;
 };
 
 // to remove same edges because lemon can only support the mode of adding edges between same nodes
-struct Edge{
-    Edge(int source, int target):_source(source), _target(target){}
+struct Edge {
+    Edge(int source, int target): _source(source), _target(target) {}
     int _source;
     int _target;
 };
 
 // compare function for user-defined std::set
 // must have strict weak ordering
-struct CompareEdge{
-    bool operator()(const Edge& edge1, const Edge& edge2){
-    
+struct CompareEdge {
+    bool operator()(const Edge &edge1, const Edge &edge2) {
+
         if ((edge1._source == edge2._source && edge1._target == edge2._target)
-            || (edge1._source == edge2._target && edge1._target == edge2._source))
-        {
+                || (edge1._source == edge2._target && edge1._target == edge2._source)) {
             return false;
         }
-        
+
         if ((edge1._source == edge2._source && edge1._target < edge2._target)
-            || (edge1._source < edge2._source))
-        {
+                || (edge1._source < edge2._source)) {
             return true;
         }
-        
+
         if ((edge1._source == edge2._source && edge1._target > edge2._target)
-            || (edge1._source > edge2._source))
-        {
+                || (edge1._source > edge2._source)) {
             return false;
         }
     }
