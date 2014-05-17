@@ -10,13 +10,11 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(srcs    src/main.cpp
             src/point_cloud.cpp
             src/graph_map.cpp
-            src/parameters.cpp
             src/parameter_map.cpp
             src/solver.cpp)
             
 set(incs    include/point_cloud.h
             include/graph_map.h
-            include/parameters.h
             include/parameter_map.h
             include/solver.h)
 
