@@ -1,7 +1,11 @@
 project(HaoRegistration)
 cmake_minimum_required(VERSION 2.8)
 
-include_directories($ENV{EIGEN3_INCLUDE_DIR})
+find_package(PCL REQUIRED common)
+
+include_directories(${PCL_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS})
+
 include_directories($ENV{LEMON_INCLUDE_DIR})
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -19,5 +23,7 @@ set(incs    include/point_cloud.h
             include/solver.h)
 
 add_executable(HaoRegistration ${srcs} ${incs})
+
+target_link_libraries(HaoRegistration ${PCL_COMMON_LIBRARY})
 
 install(TARGETS HaoRegistration RUNTIME DESTINATION bin)
