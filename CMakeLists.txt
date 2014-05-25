@@ -15,12 +15,14 @@ set(srcs    src/main.cpp
             src/point_cloud.cpp
             src/graph_map.cpp
             src/parameter_map.cpp
-            src/solver.cpp)
+            src/solver.cpp
+            src/range_image.cpp)
             
 set(incs    include/point_cloud.h
             include/graph_map.h
             include/parameter_map.h
-            include/solver.h)
+            include/solver.h
+            include/range_image.h)
 
 add_executable(HaoRegistration ${srcs} ${incs})
 
