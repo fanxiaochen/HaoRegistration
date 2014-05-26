@@ -68,9 +68,8 @@ void PointCloud::connecting()
 }
 
 void PointCloud::parameterize()
-{   
-    for (DeformationGraph::NodeIt it(*deformation_graph_); it != lemon::INVALID; ++ it)
-    {
+{
+    for (DeformationGraph::NodeIt it(*deformation_graph_); it != lemon::INVALID; ++ it) {
         parameter_map_->insert(ParameterMap::MapPair(it, Parameters()));
     }
 }
@@ -88,7 +87,7 @@ void PointCloud::kNearestSearch(const int &k)
         data_set[i][0] = point.x;
         data_set[i][1] = point.y;
         data_set[i][2] = point.z;
-        
+
 //         for (size_t j = 0; j < 3; j ++) {
 //             Eigen::Vector3d point = at((*graph_map_)[it]);
 //             data_set[i][j] = point(0, j);

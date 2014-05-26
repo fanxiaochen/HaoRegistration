@@ -8,18 +8,18 @@
 class Parameters
 {
 public:
-    Parameters() {
-        affi_rot_.setZero();
-        affi_trans_.setZero();
-        correspondence_.setZero();
-        weights_.setZero();
-    }
+    Parameters();
+        
+    // map between the parameters and the unknowns vector, remember the order
+    void mapToUnknowns(Eigen::VectorXd &unknowns, size_t index);
+    void mapToTransforms(const Eigen::VectorXd &unknowns, size_t index);
 
 private:
     Eigen::Matrix3d affi_rot_;
     Eigen::Vector3d affi_trans_;
-    Eigen::Vector3d correspondence_;
-    Eigen::Vector3d weights_;
+    Eigen::Vector2d correspondence_;
+    double weight_;
+
 };
 
 class ParameterMap

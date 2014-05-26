@@ -36,18 +36,27 @@ struct Functor {
 struct EnergyFunction : Functor<double> {
     EnergyFunction(PointCloud *point_cloud)
         : _point_cloud(point_cloud) {
-            init();
+        init();
     }
 
     void init() {
-        m_inputs = 16 * _point_cloud->getNodeNum() + 6; // the number of unknowns, a difference from original paper
-        // m_values
+        m_inputs = 15 * _point_cloud->getNodeNum() + 6; // the number of unknowns
+        // m_values  the number of equations
     }
 
     int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const {
-        // Implement y = 10*(x0+3)^2 + (x1-5)^2
-        fvec(0) = 10.0 * pow(x(0) + 3.0, 2) +  pow(x(1) - 5.0, 2);
-        fvec(1) = 0;
+        // Implement the equations
+        size_t findex = 0;
+
+        for (size_t i = 0, i_end = _point_cloud->getNodeNum(); i < i_end; i ++) {
+            fvec(findex ++) = pow(x(15*i) * x(15*i+3) + x(15*i+1) * x(15*i+4) + x(15*i+2) * x(15*i+5), 2);
+            fvec(findex ++) = pow(x(15*i) * x(15*i+6) + x(15*i+1) * x(15*i+7) + x(15*i+2) * x(15*i+8), 2);
+            fvec(findex ++) = pow(x(15*i+3) * x(15*i+6) + x(15*i+4) * x(15*i+7) + x(15*i+5) * x(15*i+8), 2);
+            fvec(findex ++) = pow(1 - x(15*i) * x(15*i) + x(15*i+1) * x(15*i+1) + x(15*i+2) * x(15*i+2), 2);
+            fvec(findex ++) = pow(1 - x(15*i+3) * x(15*i+3) + x(15*i+4) * x(15*i+4) + x(15*i+5) * x(15*i+5), 2);
+            fvec(findex ++) = pow(1 - x(15*i+6) * x(15*i+6) + x(15*i+7) * x(15*i+7) + x(15*i+8) * x(15*i+8), 2);
+        }
+                    
 
         return 0;
     }
@@ -61,11 +70,11 @@ class Solver
 public:
     Solver(EnergyFunction *energy_function);
     ~Solver();
-    
+
     void apply();
 
 private:
-    EnergyFunction* energy_function_;
+    EnergyFunction *energy_function_;
     Eigen::VectorXd x_;
 };
 #endif //SOLVER_H

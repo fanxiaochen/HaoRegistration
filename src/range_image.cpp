@@ -3,15 +3,15 @@
 
 RangeImage::RangeImage()
 {
-    
+
 }
 
 RangeImage::~RangeImage()
 {
-    
+
 }
 
 void RangeImage::getPointCloud()
 {
-    
+
 }

@@ -23,9 +23,11 @@ public:
     virtual ~PointCloud();
 
     void binding();
-    
+
     void setNodeNum(size_t node_num);
-    inline size_t getNodeNum(){return node_num_;}
+    inline size_t getNodeNum() {
+        return node_num_;
+    }
 
 private:
     virtual void sampling();
@@ -36,7 +38,6 @@ private:
 
 
 private:
- //   std::vector<Eigen::Vector3d> point_cloud_;
     size_t node_num_;
 
     DeformationGraph *deformation_graph_;
