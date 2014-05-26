@@ -23,6 +23,7 @@ void PointCloud::binding()
     sampling();
     connecting();
     parameterize();
+    buildUnknownsMap();
 }
 
 void PointCloud::setNodeNum(size_t node_num)
@@ -112,6 +113,25 @@ void PointCloud::kNearestSearch(const int &k)
     }
 
     nearest_neighbors_ = new flann::Matrix<int>(indices.ptr(), indices.rows, indices.cols);
+}
+
+void PointCloud::buildUnknownsMap()
+{
+    size_t unknown_index = 0;
+    for (DeformationGraph::NodeIt it(*deformation_graph_); it != lemon::INVALID; ++ it) {
+        
+        for (size_t i = 0; i < 3; i ++) {
+            for (size_t j = 0; j < 3; j ++) {
+                unknowns_map_.insert(std::make_pair(unknown_index++, &((*parameter_map_)[it].affi_rot_(j, i))));
+            }
+        }
+        for (size_t i = 0; i < 3; i ++) {
+            unknowns_map_.insert(std::make_pair(unknown_index++, &((*parameter_map_)[it].affi_trans_(i))));
+        }
+        for (size_t j = 0; j < 3; j ++) {
+            unknowns_map_.insert(std::make_pair(unknown_index++, &((*parameter_map_)[it].correspondence_(j))));
+        }
+    }
 }
 
 

@@ -55,6 +55,7 @@ struct EnergyFunction : Functor<double> {
             fvec(findex ++) = pow(1 - x(15*i) * x(15*i) + x(15*i+1) * x(15*i+1) + x(15*i+2) * x(15*i+2), 2);
             fvec(findex ++) = pow(1 - x(15*i+3) * x(15*i+3) + x(15*i+4) * x(15*i+4) + x(15*i+5) * x(15*i+5), 2);
             fvec(findex ++) = pow(1 - x(15*i+6) * x(15*i+6) + x(15*i+7) * x(15*i+7) + x(15*i+8) * x(15*i+8), 2);
+            
         }
                     
 

@@ -25,29 +25,34 @@ public:
     void binding();
 
     void setNodeNum(size_t node_num);
+    
     inline size_t getNodeNum() {
         return node_num_;
     }
 
+
 private:
     virtual void sampling();
-    virtual void connecting();
-    virtual void parameterize();
-
+    void connecting();
+    void parameterize();
+    void buildUnknownsMap();
+    
     void kNearestSearch(const int &k);
-
-
+    
 private:
     size_t node_num_;
 
     DeformationGraph *deformation_graph_;
     GraphMap *graph_map_;
     ParameterMap *parameter_map_;
+    std::map<size_t, double*> unknowns_map_;
 
     flann::Matrix<int> *nearest_neighbors_;
 
     Eigen::Matrix3d rigid_rot_;
     Eigen::Vector3d rigid_trans_;
+    
+    Eigen::VectorXd unknowns_;
 };
 
 // to remove same edges because lemon can only support the mode of adding edges between same nodes

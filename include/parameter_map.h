@@ -5,21 +5,18 @@
 #include <Eigen/Dense>
 #include <lemon/list_graph.h>
 
-class Parameters
-{
+struct Parameters {
 public:
-    Parameters();
-        
-    // map between the parameters and the unknowns vector, remember the order
-    void mapToUnknowns(Eigen::VectorXd &unknowns, size_t index);
-    void mapToTransforms(const Eigen::VectorXd &unknowns, size_t index);
+    Parameters() {
+        affi_rot_.setZero();
+        affi_trans_.setZero();
+        correspondence_.setZero();
+    }
 
-private:
+public:
     Eigen::Matrix3d affi_rot_;
     Eigen::Vector3d affi_trans_;
-    Eigen::Vector2d correspondence_;
-    double weight_;
-
+    Eigen::Vector3d correspondence_;  //put the weight into the third double in correspondence
 };
 
 class ParameterMap
