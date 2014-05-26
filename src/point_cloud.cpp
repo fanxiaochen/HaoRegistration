@@ -25,10 +25,15 @@ void PointCloud::binding()
     parameterize();
 }
 
+void PointCloud::setNodeNum(size_t node_num)
+{
+    node_num_ = node_num;
+}
+
 void PointCloud::sampling()
 {
     std::vector<size_t> index;
-    for (size_t i = 0, i_end = point_cloud_.size(); i < i_end; i ++) {
+    for (size_t i = 0, i_end = size(); i < i_end; i ++) {
         index.push_back(i);
     }
 
@@ -73,16 +78,21 @@ void PointCloud::parameterize()
 void PointCloud::kNearestSearch(const int &k)
 {
     flann::Matrix<double> data_set(new double[node_num_ * 3], node_num_, 3);
-    flann::Matrix<double> query(new double[point_cloud_.size() * 3], point_cloud_.size(), 3);
+    flann::Matrix<double> query(new double[size() * 3], size(), 3);
 
     // for the mapping between graph node indices and search results
     std::map<size_t, size_t> index_mapping;
     size_t i = 0;
     for (DeformationGraph::NodeIt it(*deformation_graph_); it != lemon::INVALID; ++ it, i ++) {
-        for (size_t j = 0; j < 3; j ++) {
-            Eigen::Vector3d point = point_cloud_.at((*graph_map_)[it]);
-            data_set[i][j] = point(0, j);
-        }
+        Point point = at((*graph_map_)[it]);
+        data_set[i][0] = point.x;
+        data_set[i][1] = point.y;
+        data_set[i][2] = point.z;
+        
+//         for (size_t j = 0; j < 3; j ++) {
+//             Eigen::Vector3d point = at((*graph_map_)[it]);
+//             data_set[i][j] = point(0, j);
+//         }
         index_mapping.insert(std::pair<size_t, size_t>(i, (*graph_map_)[it]));
     }
 

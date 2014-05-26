@@ -40,7 +40,7 @@ struct EnergyFunction : Functor<double> {
     }
 
     void init() {
-        m_inputs = 16 * _point_cloud->getNodeSize() + 6; // the number of unknowns, a difference from original paper
+        m_inputs = 16 * _point_cloud->getNodeNum() + 6; // the number of unknowns, a difference from original paper
         // m_values
     }
 

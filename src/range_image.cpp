@@ -10,3 +10,8 @@ RangeImage::~RangeImage()
 {
     
 }
+
+void RangeImage::getPointCloud()
+{
+    
+}

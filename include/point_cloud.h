@@ -3,25 +3,29 @@
 
 #include <vector>
 
-#include <Eigen/Dense>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 #include <lemon/list_graph.h>
 #include <flann/flann.hpp>
 
 #include "graph_map.h"
 #include "parameter_map.h"
 
-class PointCloud
+typedef pcl::PointXYZRGBNormal Point;
+
+class PointCloud: public pcl::PointCloud<Point>
 {
 public:
     typedef lemon::ListGraph DeformationGraph;
 
 public:
     PointCloud();
-    ~PointCloud();
+    virtual ~PointCloud();
 
     void binding();
     
-    inline size_t getNodeSize(){return node_num_;}
+    void setNodeNum(size_t node_num);
+    inline size_t getNodeNum(){return node_num_;}
 
 private:
     virtual void sampling();
@@ -32,7 +36,7 @@ private:
 
 
 private:
-    std::vector<Eigen::Vector3d> point_cloud_;
+ //   std::vector<Eigen::Vector3d> point_cloud_;
     size_t node_num_;
 
     DeformationGraph *deformation_graph_;

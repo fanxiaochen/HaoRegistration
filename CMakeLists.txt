@@ -1,7 +1,7 @@
 project(HaoRegistration)
 cmake_minimum_required(VERSION 2.8)
 
-find_package(PCL REQUIRED common)
+find_package(PCL REQUIRED common io)
 
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
@@ -26,6 +26,6 @@ set(incs    include/point_cloud.h
 
 add_executable(HaoRegistration ${srcs} ${incs})
 
-target_link_libraries(HaoRegistration ${PCL_COMMON_LIBRARY})
+target_link_libraries(HaoRegistration ${PCL_COMMON_LIBRARY} ${PCL_IO_LIBRARY})
 
 install(TARGETS HaoRegistration RUNTIME DESTINATION bin)
