@@ -132,6 +132,13 @@ void PointCloud::buildUnknownsMap()
             unknowns_map_.insert(std::make_pair(unknown_index++, &((*parameter_map_)[it].correspondence_(j))));
         }
     }
+    
+    // lack of rigid_rot_ unknowns
+    
+    for (size_t i = 0; i < 3; i ++){
+        unknowns_map_.insert(std::make_pair(unknown_index++, &rigid_trans_(i)));
+    }
+    
 }
 
 
