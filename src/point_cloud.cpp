@@ -115,9 +115,12 @@ void PointCloud::kNearestSearch(const int &k)
     nearest_neighbors_ = new flann::Matrix<int>(indices.ptr(), indices.rows, indices.cols);
 }
 
+// remember the order of the parameters
 void PointCloud::buildUnknownsMap()
 {
     size_t unknown_index = 0;
+    
+    //every node has 15 parameters
     for (DeformationGraph::NodeIt it(*deformation_graph_); it != lemon::INVALID; ++ it) {
         
         for (size_t i = 0; i < 3; i ++) {

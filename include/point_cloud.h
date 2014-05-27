@@ -29,7 +29,19 @@ public:
     inline size_t getNodeNum() {
         return node_num_;
     }
-
+    
+    inline DeformationGraph* getDeformationGraph(){
+        return deformation_graph_;      
+    }
+    
+    inline GraphMap* getGraphMap(){
+    
+        return graph_map_;
+    }
+    
+    inline ParameterMap* getParameterMap(){  
+        return parameter_map_;
+    }
 
 private:
     virtual void sampling();
@@ -51,6 +63,8 @@ private:
 
     Eigen::Matrix3d rigid_rot_;
     Eigen::Vector3d rigid_trans_;
+    
+    Eigen::Vector3d gravity_center_;
     
     Eigen::VectorXd unknowns_;
 };
