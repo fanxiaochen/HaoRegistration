@@ -5,6 +5,7 @@
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+#include <opencv2/core/core.hpp>
 #include <lemon/list_graph.h>
 #include <flann/flann.hpp>
 
@@ -21,6 +22,9 @@ public:
 public:
     PointCloud();
     virtual ~PointCloud();
+    
+    void load(const std::string& file);
+    Point getPointFromDepthMap(int u, int v);
 
     void binding();
 
@@ -50,10 +54,12 @@ private:
     void buildUnknownsMap();
     
     void kNearestSearch(const int &k);
+    void evaluateNormal();
     
 private:
+    cv::Mat depth_map_;
+    
     size_t node_num_;
-
     DeformationGraph *deformation_graph_;
     GraphMap *graph_map_;
     ParameterMap *parameter_map_;
@@ -68,6 +74,7 @@ private:
     
     Eigen::VectorXd unknowns_;
 };
+
 
 // to remove same edges because lemon can only support the mode of adding edges between same nodes
 struct Edge {

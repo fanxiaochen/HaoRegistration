@@ -1,3 +1,7 @@
+
+#include <opencv2/highgui/highgui.hpp>
+#include <pcl/features/normal_3d.h>
+
 #include "point_cloud.h"
 
 
@@ -24,6 +28,62 @@ void PointCloud::binding()
     connecting();
     parameterize();
     buildUnknownsMap();
+}
+
+void PointCloud::load(const std::string &file)
+{
+    depth_map_ = cv::imread(file, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_ANYCOLOR);  // Read the file
+    depth_map_.convertTo(depth_map_, CV_32F); // convert the image data to float type
+
+    width = depth_map_.cols;
+    height = depth_map_.rows;
+    points.resize(width * height);
+
+    register float constant = 1.0f / 525; // kinect focal length: 525
+    register int centerX = (width >> 1);
+    register int centerY = (height >> 1);
+    register int depth_idx = 0;
+    for (int v = -centerY; v < centerY; ++v) {
+        for (register int u = -centerX; u < centerX; ++u, ++depth_idx) {
+            Point &pt = points[depth_idx];
+            pt.z = depth_map_.at<float>(u, v) * 0.001f;
+            pt.x = static_cast<float>(u) * pt.z * constant;
+            pt.y = static_cast<float>(v) * pt.z * constant;
+        }
+    }
+    sensor_origin_.setZero();
+    sensor_orientation_.w() = 0.0f;
+    sensor_orientation_.x() = 1.0f;
+    sensor_orientation_.y() = 0.0f;
+    sensor_orientation_.z() = 0.0f;
+
+    evaluateNormal();
+}
+
+void PointCloud::evaluateNormal()
+{
+    pcl::NormalEstimation<Point, pcl::Normal> ne;
+    ne.setInputCloud(pcl::PointCloud<Point>::Ptr(this));
+    pcl::search::KdTree<Point>::Ptr tree(new pcl::search::KdTree<Point> ());
+    ne.setSearchMethod(tree);
+    pcl::PointCloud<pcl::Normal>::Ptr cloud_normals(new pcl::PointCloud<pcl::Normal>);
+
+    // Use all neighbors in a sphere of radius 3cm
+    ne.setRadiusSearch(0.03);
+    ne.compute(*cloud_normals);
+    
+    for (size_t i = 0, i_end = size(); i < i_end; i ++)
+    {
+        at(i).normal_x = cloud_normals->at(i).normal_x;
+        at(i).normal_y = cloud_normals->at(i).normal_y;
+        at(i).normal_z = cloud_normals->at(i).normal_z;
+    }
+}
+
+Point PointCloud::getPointFromDepthMap(int u, int v)
+{
+
+    return Point();
 }
 
 void PointCloud::setNodeNum(size_t node_num)
@@ -119,10 +179,10 @@ void PointCloud::kNearestSearch(const int &k)
 void PointCloud::buildUnknownsMap()
 {
     size_t unknown_index = 0;
-    
+
     //every node has 15 parameters
     for (DeformationGraph::NodeIt it(*deformation_graph_); it != lemon::INVALID; ++ it) {
-        
+
         for (size_t i = 0; i < 3; i ++) {
             for (size_t j = 0; j < 3; j ++) {
                 unknowns_map_.insert(std::make_pair(unknown_index++, &((*parameter_map_)[it].affi_rot_(j, i))));
@@ -135,13 +195,13 @@ void PointCloud::buildUnknownsMap()
             unknowns_map_.insert(std::make_pair(unknown_index++, &((*parameter_map_)[it].correspondence_(j))));
         }
     }
-    
+
     // lack of rigid_rot_ unknowns
-    
-    for (size_t i = 0; i < 3; i ++){
+
+    for (size_t i = 0; i < 3; i ++) {
         unknowns_map_.insert(std::make_pair(unknown_index++, &rigid_trans_(i)));
     }
-    
+
 }
 
 

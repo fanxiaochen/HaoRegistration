@@ -10,7 +10,10 @@ class RangeImage: public pcl::RangeImage
 public:
     RangeImage();
     virtual ~RangeImage();
+    
+    void load(const std::string& file);
 
+    Point getPoint(double u, double v);
     void getPointCloud();
 private:
     boost::shared_ptr<PointCloud> point_cloud_;
