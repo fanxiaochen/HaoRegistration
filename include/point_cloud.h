@@ -4,15 +4,14 @@
 #include <vector>
 
 #include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
 #include <opencv2/core/core.hpp>
 #include <lemon/list_graph.h>
 #include <flann/flann.hpp>
 
 #include "graph_map.h"
 #include "parameter_map.h"
+#include "types.h"
 
-typedef pcl::PointXYZRGBNormal Point;
 
 class PointCloud: public pcl::PointCloud<Point>
 {
@@ -46,6 +45,8 @@ public:
     inline ParameterMap* getParameterMap(){  
         return parameter_map_;
     }
+    
+    void transform();
 
 private:
     virtual void sampling();
@@ -53,8 +54,13 @@ private:
     void parameterize();
     void buildUnknownsMap();
     
-    void kNearestSearch(const int &k);
+    void kNearestSearch(const int k);
     void evaluateNormal();
+    void evaluateMassCenter();
+    void computeDependencyWeights();
+    
+    Point localTransform(size_t j);
+    Point globalTransform(const Point& point);
     
 private:
     cv::Mat depth_map_;
@@ -64,13 +70,16 @@ private:
     GraphMap *graph_map_;
     ParameterMap *parameter_map_;
     std::map<size_t, double*> unknowns_map_;
-
+    
+    static const int k_ = 4;
     flann::Matrix<int> *nearest_neighbors_;
+    flann::Matrix<double> *neighbor_dists_;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> dependency_weights_;
 
-    Eigen::Matrix3d rigid_rot_;
+    Eigen::Vector3d rigid_rot_;  // axis-angle form, only need three parameters
     Eigen::Vector3d rigid_trans_;
     
-    Eigen::Vector3d gravity_center_;
+    Eigen::Vector3d mass_center_;
     
     Eigen::VectorXd unknowns_;
 };
