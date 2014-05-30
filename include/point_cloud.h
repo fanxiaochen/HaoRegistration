@@ -21,56 +21,64 @@ public:
 public:
     PointCloud();
     virtual ~PointCloud();
-    
-    void load(const std::string& file);
+
+    void load(const std::string &file);
     Point getPointFromDepthMap(int u, int v);
 
     void binding();
 
     void setNodeNum(size_t node_num);
-    
+
     inline size_t getNodeNum() {
         return node_num_;
     }
-    
-    inline DeformationGraph* getDeformationGraph(){
-        return deformation_graph_;      
+
+    inline DeformationGraph *getDeformationGraph() {
+        return deformation_graph_;
     }
-    
-    inline GraphMap* getGraphMap(){
-    
+
+    inline GraphMap *getGraphMap() {
+
         return graph_map_;
     }
-    
-    inline ParameterMap* getParameterMap(){  
+
+    inline ParameterMap *getParameterMap() {
         return parameter_map_;
     }
-    
+
     void transform();
+
+    static void print(PointCloud *pointcloud) {
+        for (size_t i = 0, i_end = pointcloud->size(); i < i_end; i ++) {
+            const Point &point = pointcloud->at(i);
+            std::cout << "x:" << point.x << " y:" << point.y << " z:" << point.z << std::endl;
+        }
+    }
+
 
 private:
     virtual void sampling();
     void connecting();
     void parameterize();
     void buildUnknownsMap();
-    
+
     void kNearestSearch(const int k);
     void evaluateNormal();
     void evaluateMassCenter();
     void computeDependencyWeights();
-    
+
     Point localTransform(size_t j);
-    Point globalTransform(const Point& point);
-    
+    Point globalTransform(const Point &point);
+
 private:
     cv::Mat depth_map_;
-    
+
     size_t node_num_;
     DeformationGraph *deformation_graph_;
     GraphMap *graph_map_;
     ParameterMap *parameter_map_;
-    std::map<size_t, double*> unknowns_map_;
-    
+    std::map<size_t, double *> unknowns_map_;
+
     static const int k_ = 4;
     flann::Matrix<int> *nearest_neighbors_;
     flann::Matrix<double> *neighbor_dists_;
@@ -78,9 +86,9 @@ private:
 
     Eigen::Vector3d rigid_rot_;  // axis-angle form, only need three parameters
     Eigen::Vector3d rigid_trans_;
-    
+
     Eigen::Vector3d mass_center_;
-    
+
     Eigen::VectorXd unknowns_;
 };
 

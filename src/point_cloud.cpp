@@ -38,7 +38,9 @@ void PointCloud::load(const std::string &file)
 
     width = depth_map_.cols;
     height = depth_map_.rows;
+    is_dense = false;
     points.resize(width * height);
+ 
 
     register float constant = 1.0f / 525; // kinect focal length: 525
     register int centerX = (width >> 1);
@@ -57,8 +59,10 @@ void PointCloud::load(const std::string &file)
     sensor_orientation_.x() = 1.0f;
     sensor_orientation_.y() = 0.0f;
     sensor_orientation_.z() = 0.0f;
+    
+  //  PointCloud::print(this);
 
-    evaluateNormal();
+  //  evaluateNormal();
 }
 
 void PointCloud::evaluateNormal()

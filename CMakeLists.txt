@@ -1,14 +1,14 @@
 project(HaoRegistration)
 cmake_minimum_required(VERSION 2.8)
 
+find_package(OpenSceneGraph REQUIRED osgViewer osgGA)
 find_package(PCL REQUIRED common kdtree search features)
 find_package(Ceres REQUIRED)
 find_package(OpenCV REQUIRED)
 
 include_directories(${CERES_INCLUDE_DIRS})
-
 include_directories(${OpenCV_INCLUDE_DIRS})
-
+include_directories(${OPENSCENEGRAPH_INCLUDE_DIRS})
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 
@@ -22,17 +22,18 @@ set(srcs    src/main.cpp
             src/graph_map.cpp
             src/parameter_map.cpp
             src/solver.cpp
-            src/range_image.cpp)
+            src/range_image.cpp
+            src/visualizer.cpp)
             
 set(incs    include/point_cloud.h
             include/graph_map.h
             include/parameter_map.h
             include/solver.h
-            include/range_image.h)
+            include/range_image.h
+            include/visualizer.h)
 
 add_executable(HaoRegistration ${srcs} ${incs})
 
-target_link_libraries(HaoRegistration ${PCL_COMMON_LIBRARY} ${PCL_KDTREE_LIBRARY} ${PCL_FEATURES_LIBRARY}
-${PCL_SEARCH_LIBRARY} ${CERES_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(HaoRegistration ${OPENSCENEGRAPH_LIBRARIES} ${PCL_COMMON_LIBRARY} ${PCL_KDTREE_LIBRARY} ${PCL_FEATURES_LIBRARY} ${PCL_SEARCH_LIBRARY} ${CERES_LIBRARIES} ${OpenCV_LIBS})
 
 install(TARGETS HaoRegistration RUNTIME DESTINATION bin)
