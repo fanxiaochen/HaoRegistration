@@ -11,14 +11,14 @@ RangeImage::~RangeImage()
 
 }
 
-void RangeImage::load(const std::string& file)
+void RangeImage::load(const std::string &file)
 {
-    
+
 }
 
 Point RangeImage::getPoint(double u, double v)
 {
-    
+
 }
 
 void RangeImage::getPointCloud()

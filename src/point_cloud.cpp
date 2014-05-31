@@ -40,7 +40,7 @@ void PointCloud::load(const std::string &file)
     height = depth_map_.rows;
     is_dense = false;
     points.resize(width * height);
- 
+
 
     register float constant = 1.0f / 525; // kinect focal length: 525
     register int centerX = (width >> 1);
@@ -59,10 +59,10 @@ void PointCloud::load(const std::string &file)
     sensor_orientation_.x() = 1.0f;
     sensor_orientation_.y() = 0.0f;
     sensor_orientation_.z() = 0.0f;
-    
-  //  PointCloud::print(this);
 
-  //  evaluateNormal();
+    //  PointCloud::print(this);
+
+    //  evaluateNormal();
 }
 
 void PointCloud::evaluateNormal()
@@ -76,9 +76,8 @@ void PointCloud::evaluateNormal()
     // Use all neighbors in a sphere of radius 3cm
     ne.setRadiusSearch(0.03);
     ne.compute(*cloud_normals);
-    
-    for (size_t i = 0, i_end = size(); i < i_end; i ++)
-    {
+
+    for (size_t i = 0, i_end = size(); i < i_end; i ++) {
         at(i).normal_x = cloud_normals->at(i).normal_x;
         at(i).normal_y = cloud_normals->at(i).normal_y;
         at(i).normal_z = cloud_normals->at(i).normal_z;
@@ -88,17 +87,16 @@ void PointCloud::evaluateNormal()
 void PointCloud::evaluateMassCenter()
 {
     Point center;
-    for (size_t i = 0, i_end = size(); i < i_end; i ++)
-    {    
+    for (size_t i = 0, i_end = size(); i < i_end; i ++) {
         center.x += at(i).x;
         center.y += at(i).y;
         center.z += at(i).z;
     }
-    
+
     center.x = center.x / size();
     center.y = center.y / size();
     center.z = center.z / size();
-    
+
     mass_center_(0) = center.x;
     mass_center_(1) = center.y;
     mass_center_(2) = center.z;
@@ -108,23 +106,20 @@ void PointCloud::computeDependencyWeights()
 {
     const int k = k_ + 1;
     kNearestSearch(k);
-    
-    for (size_t j = 0, j_end = size(); j < j_end; j ++)
-    {
+
+    for (size_t j = 0, j_end = size(); j < j_end; j ++) {
         double d_max = (*neighbor_dists_)[j][k - 1];
-        const Point& point = at(j);
+        const Point &point = at(j);
         double numerator[k_];
         double denominator = 0;
-        for (size_t i = 0; i < k_; i ++)
-        {
-            const Point& node = at((*nearest_neighbors_)[j][i]);
+        for (size_t i = 0; i < k_; i ++) {
+            const Point &node = at((*nearest_neighbors_)[j][i]);
             Eigen::Vector3d vector = EIGEN_POINT_CAST(point) - EIGEN_POINT_CAST(node);
             numerator[i] = 1 - vector.norm() / d_max;
             denominator += numerator[i];
         }
-        
-        for (size_t i = 0; i < k_; i ++)
-        {
+
+        for (size_t i = 0; i < k_; i ++) {
             dependency_weights_(j, i) = numerator[i] / denominator;
         }
     }
@@ -133,30 +128,29 @@ void PointCloud::computeDependencyWeights()
 Point PointCloud::localTransform(size_t j)
 {
     Eigen::Vector3d vector;
-    const Point& point = at(j);
-    Eigen::Vector3d eigen_point = EIGEN_POINT_CAST(point); 
-    for (size_t i = 0; i < k_; i ++)
-    {
-        const Point& node = at((*nearest_neighbors_)[j][i]);
+    const Point &point = at(j);
+    Eigen::Vector3d eigen_point = EIGEN_POINT_CAST(point);
+    for (size_t i = 0; i < k_; i ++) {
+        const Point &node = at((*nearest_neighbors_)[j][i]);
         Eigen::Vector3d eigen_node = EIGEN_POINT_CAST(node);
         Parameters parameters = (*parameter_map_)[(*graph_map_)[i]]; // too complicated map index...
-        vector += dependency_weights_(j, i) * parameters.affi_rot_ * (eigen_point - eigen_node) + 
-        eigen_node + parameters.affi_trans_;        
+        vector += dependency_weights_(j, i) * parameters.affi_rot_ * (eigen_point - eigen_node) +
+                  eigen_node + parameters.affi_trans_;
     }
     return POINT_EIGEN_CAST(vector);
 }
 
-Point PointCloud::globalTransform(const Point& point)
+Point PointCloud::globalTransform(const Point &point)
 {
     Eigen::Matrix3d rotation;
     double theta = rigid_rot_(0);
     double x = rigid_rot_(1);
     double y = rigid_rot_(2);
-    double z = sqrt(1 - x*x - y*y);
-    rotation << cos(theta)+(1-cos(theta))*x*x, (1-cos(theta))*x*y-sin(theta)*z, (1-cos(theta))*x*z+sin(theta)*y,
-                (1-cos(theta))*y*z+sin(theta)*z, cos(theta)+(1-cos(theta))*y*y, (1-cos(theta))*y*z-sin(theta)*x,
-                (1-cos(theta))*z*x-sin(theta)*y, (1-cos(theta))*z*y+sin(theta)*x, cos(theta)+(1-cos(theta))*z*z;
-    
+    double z = sqrt(1 - x * x - y * y);
+    rotation << cos(theta) + (1 - cos(theta))*x *x, (1 - cos(theta))*x *y - sin(theta)*z, (1 - cos(theta))*x *z + sin(theta)*y,
+             (1 - cos(theta))*y *z + sin(theta)*z, cos(theta) + (1 - cos(theta))*y *y, (1 - cos(theta))*y *z - sin(theta)*x,
+             (1 - cos(theta))*z *x - sin(theta)*y, (1 - cos(theta))*z *y + sin(theta)*x, cos(theta) + (1 - cos(theta))*z *z;
+
     Eigen::Vector3d eigen_point = EIGEN_POINT_CAST(point);
     Eigen::Vector3d tran_point = rotation * (eigen_point - mass_center_) + mass_center_ + rigid_trans_;
     return POINT_EIGEN_CAST(tran_point);
@@ -164,8 +158,7 @@ Point PointCloud::globalTransform(const Point& point)
 
 void PointCloud::transform()
 {
-    for (size_t j = 0, j_end = size(); j < j_end; j ++)
-    {
+    for (size_t j = 0, j_end = size(); j < j_end; j ++) {
         // how about normals?
         Point point = globalTransform(localTransform(j));
         at(j) = point;

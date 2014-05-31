@@ -5,15 +5,15 @@
 #include "visualizer.h"
 
 Visualizer::Visualizer()
-:viewer_(new osgViewer::Viewer()),
-scene_root_(new osg::Group())
+    : viewer_(new osgViewer::Viewer()),
+      scene_root_(new osg::Group())
 {
-    
+
 }
 
 Visualizer::~Visualizer()
 {
-    
+
 }
 
 void Visualizer::init()
@@ -25,7 +25,7 @@ void Visualizer::init()
     viewer_->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 }
 
-void Visualizer::put(PointCloud* point_cloud)
+void Visualizer::put(PointCloud *point_cloud)
 {
     osg::ref_ptr<osg::Vec3Array>  vertices = new osg::Vec3Array;
     osg::ref_ptr<osg::Vec3Array>  normals = new osg::Vec3Array;
@@ -48,8 +48,8 @@ void Visualizer::put(PointCloud* point_cloud)
     geometry->setColorData(osg::Geometry::ArrayData(colors, osg::Geometry::BIND_PER_VERTEX));
     geometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, item_num));
     geometry->getOrCreateStateSet()->setAttribute(new osg::Point(2.0f));
-    
-    osg::Geode* geode = new osg::Geode();
+
+    osg::Geode *geode = new osg::Geode();
     geode->addDrawable(geometry);
     scene_root_->addChild(geode);
 

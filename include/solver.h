@@ -1,148 +1,158 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 
-#include <unsupported/Eigen/NonLinearOptimization>
-#include <unsupported/Eigen/NumericalDiff>
+#include <ceres/ceres.h>
+#include <glog/logging.h>
 #include <boost/concept_check.hpp>
 
 #include "point_cloud.h"
 
-// Generic functor
-template<typename _Scalar, int NX = Eigen::Dynamic, int NY = Eigen::Dynamic>
-struct Functor {
-    typedef _Scalar Scalar;
-    enum {
-        InputsAtCompileTime = NX,
-        ValuesAtCompileTime = NY
-    };
-    typedef Eigen::Matrix<Scalar, InputsAtCompileTime, 1> InputType;
-    typedef Eigen::Matrix<Scalar, ValuesAtCompileTime, 1> ValueType;
-    typedef Eigen::Matrix<Scalar, ValuesAtCompileTime, InputsAtCompileTime> JacobianType;
+#define INNER_PRODUCT(x1, y1, z1, x2, y2, z2) (((x1)*(x2))+((y1)*(y2))+((z1)*(z2)))
+#define SQUARE_NORM(x, y, z) (((x)*(x))+((y)*(y))+((z)*(z)))
 
-    int m_inputs, m_values;
 
-    Functor() : m_inputs(InputsAtCompileTime), m_values(ValuesAtCompileTime) {}
-    Functor(int inputs, int values) : m_inputs(inputs), m_values(values) {}
+// default column-major in eigen
+struct RigidFunctor {
+    RigidFunctor(double coeff)
+        : _coeff(coeff) {
 
-    int inputs() const {
-        return m_inputs;
     }
-    int values() const {
-        return m_values;
+    template <typename T>
+    bool operator()(const T *const affi_m, T *residual) const {
+        residual[0] = INNER_PRODUCT(affi_m[0], affi_m[1], affi_m[2], affi_m[3], affi_m[4], affi_m[5]);
+        residual[1] = INNER_PRODUCT(affi_m[0], affi_m[1], affi_m[2], affi_m[6], affi_m[7], affi_m[8]);
+        residual[2] = INNER_PRODUCT(affi_m[3], affi_m[4], affi_m[5], affi_m[6], affi_m[7], affi_m[8]);
+        residual[3] = T(1) - SQUARE_NORM(affi_m[0], affi_m[1], affi_m[2]);
+        residual[4] = T(1) - SQUARE_NORM(affi_m[3], affi_m[4], affi_m[5]);
+        residual[5] = T(1) - SQUARE_NORM(affi_m[6], affi_m[7], affi_m[8]);
+
+        for (size_t i = 0; i < 6; i ++) {
+            residual[i] = _coeff * residual[i];
+        }
+
+        return true;
     }
 
+private:
+    double _coeff;
+};
+
+struct SmoothFunctor {
+    SmoothFunctor(double coeff, Eigen::Vector3d master, Eigen::Vector3d slave)
+        : _coeff(coeff) , _master(master), _slave(slave) {
+    }
+
+    template <typename T>
+    bool operator()(const T *const affi_m, const T *const trans_m, const T *const trans_s, T *residual) const {
+        Eigen::Vector3d delta_vector = _slave - _master;
+
+        residual[0] = INNER_PRODUCT((affi_m[0] - T(1)), affi_m[3], affi_m[6], 
+                                    delta_vector(0), delta_vector(1), delta_vector(2)) + trans_m[0] - trans_s[0];
+        residual[1] = INNER_PRODUCT(affi_m[1], (affi_m[4] - T(1)), affi_m[7], 
+                                    delta_vector(0), delta_vector(1), delta_vector(2)) + trans_m[1] - trans_s[1];
+        residual[2] = INNER_PRODUCT(affi_m[2], affi_m[5], (affi_m[8] - T(1)), 
+                                    delta_vector(0), delta_vector(1), delta_vector(2)) + trans_m[2] - trans_s[2];
+
+        for (size_t i = 0; i < 3; i ++) {
+            residual[i] = _coeff * residual[i];
+        }
+
+        return true;
+    }
+
+private:
+    double _coeff;
+    Eigen::Vector3d _master;
+    Eigen::Vector3d _slave;
 };
 
 
-struct EnergyFunction : Functor<double> {
-    EnergyFunction(PointCloud *point_cloud)
-        : _point_cloud(point_cloud) {
-        init();
+struct FitFunctor {
+    FitFunctor(double coeff, Eigen::Vector3d point, Eigen::Vector3d mass_center)
+        : _coeff(coeff), _point(point), _mass_center(mass_center) {
     }
 
-    void init() {
-        m_inputs = 15 * _point_cloud->getNodeNum() + 6; // the number of unknowns
-        // m_values  the number of equations
-    }
-    
-    inline double multiply(const double& x1, const double& y1, const double& z1, 
-                           const double& x2, const double& y2, const double& z2) const {
-    
-        return x1*x2 + y1*y2 + z1*z2;
-    }
-    
-    inline double multiply(const double& x, const double& y, const double& z) const {
-    
-        return x*x + y*y + z*z;
-    }
-    
-    inline double multiply(const double& x, const double& y) const {
-    
-        return x*x + y*y;
-    }
-    
-//     inline double multiply(double& a11, double& a12, double& a13, double& a21, double& a22, double& a23,
-//         double& a31, double& a32, double& a33, double& x, double& y, double& z)
-//     {
-//         return a11;
-//     }
+    template <typename T>
+    bool operator()(const T *const plane_paras, const T *const rot_m, const T *const trans, T *residual) const {
+        T theta = rot_m[0];
+        T x = rot_m[1];
+        T y = rot_m[2];
+        T z = sqrt(T(1.0) - x * x - y * y);
+        T r[9]; // rotation matrix in axis-angle form
+        r[0] = cos(theta) + (T(1) - cos(theta)) * x * x;
+        r[1] = (T(1) - cos(theta)) * y * x + sin(theta) * z;
+        r[2] = (T(1) - cos(theta)) * z * x - sin(theta) * y;
+        r[3] = (T(1) - cos(theta)) * x * y - sin(theta) * z;
+        r[4] = cos(theta) + (T(1) - cos(theta)) * y * y;
+        r[5] = (T(1) - cos(theta)) * z * y + sin(theta) * x;
+        r[6] = (T(1) - cos(theta)) * x * z + sin(theta) * y;
+        r[7] = (T(1) - cos(theta)) * y * z - sin(theta) * x;
+        r[8] = cos(theta) + (T(1) - cos(theta)) * z * z;
 
-    int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const {
-        // Implement the equations
-        size_t findex = 0;
-        size_t node_num = _point_cloud->getNodeNum();
-        PointCloud::DeformationGraph* graph = _point_cloud->getDeformationGraph();
-        GraphMap* graph_map = _point_cloud->getGraphMap();
-        ParameterMap* parameter_map = _point_cloud->getParameterMap();
-        
-        for (PointCloud::DeformationGraph::NodeIt it(*graph); it != lemon::INVALID; ++ it) {
-            size_t node_id = graph->id(it);
-            
-            // first energy term
-            fvec(findex ++) = pow(multiply(x(15*node_id),x(15*node_id+1),x(15*node_id+2),
-              x(15*node_id+3),x(15*node_id+4),x(15*node_id+5)  
-            ), 2);
-            fvec(findex ++) = pow(multiply(x(15*node_id),x(15*node_id+1),x(15*node_id+2),
-                x(15*node_id+6),x(15*node_id+7),x(15*node_id+8)
-            ), 2);
-            fvec(findex ++) = pow(multiply(x(15*node_id+3),x(15*node_id+4),x(15*node_id+5),
-                x(15*node_id+6),x(15*node_id+7),x(15*node_id+8)
-            ), 2);
-            
-            fvec(findex ++) = pow(1-multiply(x(15*node_id),x(15*node_id+1),x(15*node_id+2)), 2);
-            fvec(findex ++) = pow(1-multiply(x(15*node_id+3),x(15*node_id+4),x(15*node_id+5)), 2);
-            fvec(findex ++) = pow(1-multiply(x(15*node_id+6),x(15*node_id+7),x(15*node_id+8)), 2);
-            
-            //second energy term
-            int i = (*graph_map)[it];
-            Point i_point = _point_cloud->at(i);
-            for (PointCloud::DeformationGraph::IncEdgeIt e(*graph, it); e != lemon::INVALID; ++ e){
-                PointCloud::DeformationGraph::Node node = graph->target(e);
-                size_t target_id = graph->id(node);
-                int j = (*graph_map)[node];
-                Point j_point = _point_cloud->at(j);
-                
-                double x_smooth = multiply(x(15*node_id),x(15*node_id+3),x(15*node_id+6),
-                    (j_point.x-i_point.x),(j_point.y-i_point.y),(j_point.z-i_point.z)
-                ) + i_point.x + x(15*node_id+9) - (j_point.x + x(15*target_id+9));
-                
-                double y_smooth = multiply(x(15*node_id+1),x(15*node_id+4),x(15*node_id+7),
-                    (j_point.x-i_point.x),(j_point.y-i_point.y),(j_point.z-i_point.z)
-                ) + i_point.y + x(15*node_id+10) - (j_point.y + x(15*target_id+10));
-                  
-                double z_smooth = multiply(x(15*node_id+2),x(15*node_id+5),x(15*node_id+8),
-                    (j_point.x-i_point.x),(j_point.y-i_point.y),(j_point.z-i_point.z)
-                ) + i_point.z + x(15*node_id+11) - (j_point.z + x(15*target_id+11));
-                
-                fvec(findex ++) = pow(multiply(x_smooth, y_smooth, z_smooth), 2);
-            }
-            
-            //third energy term, need range image supports
-            double z = 0; // stand for the z from range image 
-            
-            //forth energy term
-            fvec(findex ++) = pow(1-pow(x(15*node_id+14),2),2);
-            
+        Eigen::Vector3d delta_vector = _point - _mass_center;
+        // lack of correspondences, not finished yet
+        residual[0] = INNER_PRODUCT(r[0], r[3], r[6], delta_vector(0), 
+                                    delta_vector(1), delta_vector(2)) + _mass_center(0) + trans[0];
+        residual[1] = INNER_PRODUCT(r[1], r[4], r[7], delta_vector(0), 
+                                    delta_vector(1), delta_vector(2)) + _mass_center(1) + trans[1];
+        residual[2] = INNER_PRODUCT(r[2], r[5], r[8], delta_vector(0), 
+                                    delta_vector(1), delta_vector(2)) + _mass_center(2) + trans[2];
+
+        for (size_t i = 0; i < 3; i ++) {
+            residual[i] = _coeff * residual[i];
         }
-                    
 
-        return 0;
+        return true;
     }
 
-    PointCloud *_point_cloud;
+private:
+    double _coeff;
+    Eigen::Vector3d _point;
+    Eigen::Vector3d _mass_center;
+};
+
+struct ConfFunctor {
+    ConfFunctor(double coeff)
+        : _coeff(coeff) {
+    }
+
+    template <typename T>
+    bool operator()(const T *const w, T *residual) const {
+        residual[0] = _coeff * (T(1.0) - w[0] * w[0]);
+        return true;
+    }
+
+private:
+    double _coeff;
 };
 
 
 class Solver
 {
 public:
-    Solver(EnergyFunction *energy_function);
+    typedef ceres::Problem Problem;
+    typedef ceres::Solver::Options Options;
+    typedef ceres::CostFunction CostFunction;
+    // typedef ceres::Solver::Summary;
+
+public:
+    Solver(PointCloud *point_cloud);
     ~Solver();
 
+    void buildProblem();
+    void setOptions();
+    void initCoeffs();
     void apply();
 
 private:
-    EnergyFunction *energy_function_;
-    Eigen::VectorXd x_;
+    PointCloud *point_cloud_;
+
+    double rigid_alpha_;
+    double smooth_alpha_;
+    double fit_alpha_;
+    double conf_alpha_;
+
+    Problem problem_;
+    Options options_;
 };
 #endif //SOLVER_H

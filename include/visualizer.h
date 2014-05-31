@@ -10,17 +10,17 @@ class Visualizer
 public:
     Visualizer();
     ~Visualizer();
-    
+
     void init();
-    
-    void put(PointCloud* point_cloud);
-    
+
+    void put(PointCloud *point_cloud);
+
     void visualize();
-    
-    
+
+
 private:
-    osgViewer::Viewer* viewer_;
-    osg::ref_ptr<osg::Group> scene_root_; 
+    osgViewer::Viewer *viewer_;
+    osg::ref_ptr<osg::Group> scene_root_;
 };
 
 #endif //VISUALIZER_H

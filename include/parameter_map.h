@@ -48,8 +48,8 @@ public:
 
     void insert(MapPair map_pair);
 
-    Value operator[](const Iterator &it);
-    Value operator[](const Key &k);
+    Value &operator[](const Iterator &it);
+    Value &operator[](const Key &k);
 
 private:
     lemon::ListGraph *_graph;

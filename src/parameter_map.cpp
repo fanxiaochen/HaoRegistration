@@ -17,12 +17,12 @@ void ParameterMap::insert(MapPair map_pair)
     _parameter_map[map_pair._key] = map_pair._value;
 }
 
-ParameterMap::Value ParameterMap::operator[](const Key &k)
+ParameterMap::Value &ParameterMap::operator[](const Key &k)
 {
     return _parameter_map[k];
 }
 
-ParameterMap::Value ParameterMap::operator[](const Iterator &it)
+ParameterMap::Value &ParameterMap::operator[](const Iterator &it)
 {
     return _parameter_map[it];
 }

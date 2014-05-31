@@ -46,6 +46,10 @@ public:
         return parameter_map_;
     }
 
+    inline Eigen::Vector3d getMassCenter() {
+        return mass_center_;
+    }
+
     void transform();
 
     static void print(PointCloud *pointcloud) {
@@ -70,6 +74,10 @@ private:
     Point localTransform(size_t j);
     Point globalTransform(const Point &point);
 
+public:
+    Eigen::Vector3d rigid_rot_;  // axis-angle form, only need three parameters
+    Eigen::Vector3d rigid_trans_;
+
 private:
     cv::Mat depth_map_;
 
@@ -83,9 +91,6 @@ private:
     flann::Matrix<int> *nearest_neighbors_;
     flann::Matrix<double> *neighbor_dists_;
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> dependency_weights_;
-
-    Eigen::Vector3d rigid_rot_;  // axis-angle form, only need three parameters
-    Eigen::Vector3d rigid_trans_;
 
     Eigen::Vector3d mass_center_;
 

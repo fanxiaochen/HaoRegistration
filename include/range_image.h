@@ -10,8 +10,8 @@ class RangeImage: public pcl::RangeImage
 public:
     RangeImage();
     virtual ~RangeImage();
-    
-    void load(const std::string& file);
+
+    void load(const std::string &file);
 
     Point getPoint(double u, double v);
     void getPointCloud();
