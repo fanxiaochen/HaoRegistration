@@ -33,7 +33,6 @@ struct CostFunctor {
     bool operator()(const T *const x, T *residual) const {
         residual[0] = T(10.0) - x[0] - x[1];
         residual[1] = x[0] - x[1];
-        residual[0] = T(5);
         return true;
     }
 };
@@ -60,12 +59,13 @@ int main(int argc, char **argv)
     CostFunction *cost_function =
         new AutoDiffCostFunction<CostFunctor, 2, 2>(new CostFunctor);
     problem.AddResidualBlock(cost_function, NULL, x);
-    //problem.AddResidualBlock(cost_function, NULL, y);
+    problem.AddResidualBlock(cost_function, NULL, y);
 
     // Run the solver!
     Solver::Options options;
     options.linear_solver_type = ceres::DENSE_QR;
     options.minimizer_progress_to_stdout = true;
+    options.max_num_iterations = 1;
     Solver::Summary summary;
     Solve(options, &problem, &summary);
 

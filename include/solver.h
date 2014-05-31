@@ -3,7 +3,6 @@
 
 #include <ceres/ceres.h>
 #include <glog/logging.h>
-#include <boost/concept_check.hpp>
 
 #include "point_cloud.h"
 

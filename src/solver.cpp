@@ -58,9 +58,11 @@ void Solver::buildProblem()
     }
 }
 
+// many parameters for controling the optimizer to get nice results
 void Solver::setOptions()
 {
-
+    options_.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
+    options_.minimizer_progress_to_stdout = true;
 }
 
 void Solver::apply()
