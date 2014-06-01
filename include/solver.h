@@ -132,7 +132,7 @@ public:
     typedef ceres::Problem Problem;
     typedef ceres::Solver::Options Options;
     typedef ceres::CostFunction CostFunction;
-    // typedef ceres::Solver::Summary;
+    typedef ceres::Solver::Summary Summary;
 
 public:
     Solver(PointCloud *point_cloud);
@@ -153,5 +153,6 @@ private:
 
     Problem problem_;
     Options options_;
+    Summary summary_;
 };
 #endif //SOLVER_H

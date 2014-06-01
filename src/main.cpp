@@ -31,8 +31,8 @@ using ceres::Solve;
 struct CostFunctor {
     template <typename T>
     bool operator()(const T *const x, T *residual) const {
-        residual[0] = T(10.0) - x[0] - x[1];
-        residual[1] = x[0] - x[1];
+        residual[0] = 4.0*(T(10.0) - x[0] - x[1]);
+        residual[1] = 2.0*x[0] - x[0] * x[1];
         return true;
     }
 };
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
     Solver::Options options;
     options.linear_solver_type = ceres::DENSE_QR;
     options.minimizer_progress_to_stdout = true;
-    options.max_num_iterations = 1;
+    options.max_num_iterations = 100;
     Solver::Summary summary;
     Solve(options, &problem, &summary);
 
