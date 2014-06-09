@@ -1,7 +1,7 @@
 
 #include <opencv2/highgui/highgui.hpp>
 #include <pcl/features/normal_3d.h>
-#include <boost/concept_check.hpp>
+#include <XnCppWrapper.h>
 
 #include "point_cloud.h"
 
@@ -33,36 +33,38 @@ void PointCloud::binding()
 
 void PointCloud::load(const std::string &file)
 {
-    depth_map_ = cv::imread(file, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_ANYCOLOR);  // Read the file
+    
+    depth_map_ = cv::imread(file, CV_LOAD_IMAGE_ANYDEPTH);  // Read the file
     depth_map_.convertTo(depth_map_, CV_32F); // convert the image data to float type
 
     width = depth_map_.cols;
     height = depth_map_.rows;
     is_dense = false;
-    points.resize(width * height);
+    points.resize(height * width);
 
 
-    register float constant = 1.0f / 525; // kinect focal length: 525
-    register int centerX = (width >> 1);
-    register int centerY = (height >> 1);
-    register int depth_idx = 0;
-    for (int v = -centerY; v < centerY; ++v) {
-        for (register int u = -centerX; u < centerX; ++u, ++depth_idx) {
+    float constant = 575.8; // kinect focal length: 575.8
+    int depth_idx = 0;
+    for (int u = 0; u < height; ++u) {
+        for (int v = 0; v < width; ++v, ++depth_idx) {
             Point &pt = points[depth_idx];
-            pt.z = depth_map_.at<float>(u, v) * 0.001f;
-            pt.x = static_cast<float>(u) * pt.z * constant;
-            pt.y = static_cast<float>(v) * pt.z * constant;
+            pt.z = depth_map_.at<float>(u, v) * 0.001f; // mm -> m
+            pt.x = (v - float(width) / 2) * pt.z / constant;
+            pt.y = (float(height) / 2 - u) * pt.z / constant;
+ //           std::cout << pt.x << " "<< pt.y << " "<< pt.z << std::endl;
+ //           std::cout << depth_idx << std::endl;
         }
     }
+    
     sensor_origin_.setZero();
     sensor_orientation_.w() = 0.0f;
     sensor_orientation_.x() = 1.0f;
     sensor_orientation_.y() = 0.0f;
     sensor_orientation_.z() = 0.0f;
-
-    //  PointCloud::print(this);
-
-    //  evaluateNormal();
+// 
+//     //  PointCloud::print(this);
+// 
+//     //  evaluateNormal();
 }
 
 void PointCloud::evaluateNormal()

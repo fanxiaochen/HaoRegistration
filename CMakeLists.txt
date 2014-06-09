@@ -5,9 +5,11 @@ find_package(OpenSceneGraph REQUIRED osgViewer osgGA)
 find_package(PCL REQUIRED common kdtree search features)
 find_package(Ceres REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(OpenNI REQUIRED)
 
 include_directories(${CERES_INCLUDE_DIRS})
 include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories(${OPENNI_INCLUDE_DIR})
 include_directories(${OPENSCENEGRAPH_INCLUDE_DIRS})
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
@@ -34,6 +36,6 @@ set(incs    include/point_cloud.h
 
 add_executable(HaoRegistration ${srcs} ${incs})
 
-target_link_libraries(HaoRegistration ${OPENSCENEGRAPH_LIBRARIES} ${PCL_COMMON_LIBRARY} ${PCL_KDTREE_LIBRARY} ${PCL_FEATURES_LIBRARY} ${PCL_SEARCH_LIBRARY} ${CERES_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(HaoRegistration ${OPENSCENEGRAPH_LIBRARIES} ${PCL_COMMON_LIBRARY} ${PCL_KDTREE_LIBRARY} ${PCL_FEATURES_LIBRARY} ${PCL_SEARCH_LIBRARY} ${CERES_LIBRARIES} ${OpenCV_LIBS} ${OPENNI_LIBRARIES})
 
 install(TARGETS HaoRegistration RUNTIME DESTINATION bin)
