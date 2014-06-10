@@ -1,6 +1,7 @@
 #include <osgGA/TrackballManipulator>
 #include <osgViewer/ViewerEventHandlers>
 #include <osg/Point>
+#include <osg/ShapeDrawable>
 
 #include "visualizer.h"
 
@@ -25,7 +26,7 @@ void Visualizer::init()
     viewer_->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 }
 
-void Visualizer::put(PointCloud *point_cloud)
+void Visualizer::drawImpl(PointCloud *point_cloud)
 {
     osg::ref_ptr<osg::Vec3Array>  vertices = new osg::Vec3Array;
     osg::ref_ptr<osg::Vec3Array>  normals = new osg::Vec3Array;
@@ -55,6 +56,37 @@ void Visualizer::put(PointCloud *point_cloud)
 
     return;
 }
+
+void Visualizer::drawSource(PointCloud *source)
+{
+    drawImpl(source);
+    return;
+}
+
+void Visualizer::drawTarget(PointCloud *target)
+{
+    drawImpl(target);
+    return;
+}
+
+void Visualizer::drawGraph(PointCloud *source)
+{
+    PointCloud::DeformationGraph* defo_graph = source->getDeformationGraph();
+    GraphMap* graph_map = source->getGraphMap();
+    
+    for (PointCloud::DeformationGraph::NodeIt it(*defo_graph); it != lemon::INVALID; ++ it) {
+        Point& point = source->at((*graph_map)[it]);
+        osg::Geode *node = new osg::Geode();
+        osg::ref_ptr<osg::ShapeDrawable> shape = new osg::ShapeDrawable(
+            new osg::Sphere(osg::Vec3(point.x, point.y, point.z), 1.0f));
+        shape->setColor(osg::Vec4(0.8f, 0.8f, 0.4f, 1.0f));
+        node->addDrawable(shape);
+        scene_root_->addChild(node);
+    } 
+    
+    return;
+}
+
 
 void Visualizer::visualize()
 {

@@ -34,7 +34,7 @@ public:
     ~GraphMap();
 
     void insert(MapPair map_pair);
-
+    
     Value operator[](const Iterator &it);
     Value operator[](const Key &k);
     Key operator[](const Value &v);

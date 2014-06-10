@@ -6,9 +6,12 @@ int main()
 {
     PointCloud* point_cloud = new PointCloud();
     point_cloud->load("/home/xiaochenfan/images/7.png", false);
+    point_cloud->setNodeNum(200);
+    point_cloud->binding();
     Visualizer* visualizer = new Visualizer();
     visualizer->init();
-    visualizer->put(point_cloud);
+    visualizer->drawSource(point_cloud);
+    visualizer->drawGraph(point_cloud);
     visualizer->visualize();
 
     return 0;

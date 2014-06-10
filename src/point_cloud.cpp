@@ -39,7 +39,8 @@ void PointCloud::load(const std::string &file, bool flag)
     is_dense = false;
     points.resize(height * width);
 
-    const float z_threshold = 2.0f;
+    const int scale = 100;  // scale the raw data
+    const float z_threshold = 2.0f; // for specified dataset
     float constant = 575.8; // kinect focal length: 575.8
     int depth_idx = 0;
     for (int u = 0; u < height; ++u) {
@@ -51,6 +52,11 @@ void PointCloud::load(const std::string &file, bool flag)
             }
             pt.x = (v - float(width) / 2) * pt.z / constant;
             pt.y = (float(height) / 2 - u) * pt.z / constant;
+            
+            pt.z *= scale;
+            pt.x *= scale;
+            pt.y *= scale;
+            
             ++ depth_idx;
         }
     }

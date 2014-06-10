@@ -13,10 +13,14 @@ public:
 
     void init();
 
-    void put(PointCloud *point_cloud);
+    void drawSource(PointCloud *source);
+    void drawTarget(PointCloud *target);
+    void drawGraph(PointCloud *source);
 
     void visualize();
 
+private:
+    virtual void drawImpl(PointCloud *point_cloud);
 
 private:
     osgViewer::Viewer *viewer_;
