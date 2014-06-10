@@ -77,7 +77,6 @@ void Visualizer::drawGraph(PointCloud *point_cloud)
     
     for (PointCloud::DeformationGraph::NodeIt it(*defo_graph); it != lemon::INVALID; ++ it) {
         Point& point = point_cloud->at((*graph_map)[it]);
-        std::cout << point.x << point.y << point.z << point_cloud->size() <<std::endl;
         osg::Geode *node = new osg::Geode();
         osg::ref_ptr<osg::ShapeDrawable> shape = new osg::ShapeDrawable(
             new osg::Sphere(osg::Vec3(point.x, point.y, point.z), 1.0f));
@@ -102,7 +101,7 @@ void Visualizer::drawGraph(PointCloud *point_cloud)
         osg::Vec3 center = osg::Vec3((pt_source.x + pt_target.x)/2, (pt_source.y + pt_target.y)/2,
             (pt_source.z + pt_target.z)/2);
         float height = (osg_source - osg_target).length();
-        float radius = 0.5f;
+        float radius = 0.2f;
         
         // This is the default direction for the cylinders to face in OpenGL
         osg::Vec3 z = osg::Vec3(0,0,1);

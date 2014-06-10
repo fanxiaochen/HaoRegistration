@@ -25,7 +25,7 @@ void PointCloud::binding()
     parameter_map_ = new ParameterMap(deformation_graph_);
 
     sampling();
- //   connecting();
+    connecting();
  //   parameterize();
 }
 
@@ -40,7 +40,6 @@ void PointCloud::load(const std::string &file, bool flag)
     if (flag){
         width = depth_map_.cols;
         height = depth_map_.rows;
-     //   points.resize(height * width);
     }
 
     const int scale = 100;  // scale the raw data
@@ -50,7 +49,7 @@ void PointCloud::load(const std::string &file, bool flag)
         for (int v = 0; v < depth_map_.cols; ++v) {
             Point pt;
             pt.z = depth_map_.at<float>(u, v) * 0.001f; // mm -> m
-            if (flag == false & pt.z > z_threshold){
+            if (flag == false && pt.z > z_threshold){
                 continue;
             }
             pt.x = (v - float(depth_map_.rows) / 2) * pt.z / constant;
@@ -204,7 +203,7 @@ void PointCloud::sampling()
 void PointCloud::connecting()
 {
     kNearestSearch(k_);
-
+    
     std::set<Edge, CompareEdge> edges;
     for (size_t t = 0, t_end = nearest_neighbors_->rows; t < t_end; t ++) {
         for (size_t i = 0, i_end = nearest_neighbors_->cols - 1; i < i_end; i ++) {
@@ -238,7 +237,7 @@ void PointCloud::kNearestSearch(const int k)
     std::map<size_t, size_t> index_mapping;
     size_t i = 0;
     for (DeformationGraph::NodeIt it(*deformation_graph_); it != lemon::INVALID; ++ it, i ++) {
-        Point point = at((*graph_map_)[it]);
+        Point& point = at((*graph_map_)[it]);
         data_set[i][0] = point.x;
         data_set[i][1] = point.y;
         data_set[i][2] = point.z;
@@ -248,6 +247,13 @@ void PointCloud::kNearestSearch(const int k)
 //             data_set[i][j] = point(0, j);
 //         }
         index_mapping.insert(std::pair<size_t, size_t>(i, (*graph_map_)[it]));
+    }
+    
+    for (size_t j = 0, j_end = size(); j < j_end; j ++){
+        Point& point = at(j);
+        query[j][0] = point.x;
+        query[j][1] = point.y;
+        query[j][2] = point.z;
     }
 
     flann::Matrix<int> indices(new int[query.rows * k], query.rows, k);
@@ -268,6 +274,7 @@ void PointCloud::kNearestSearch(const int k)
 
     nearest_neighbors_ = new flann::Matrix<int>(indices.ptr(), indices.rows, indices.cols);
     neighbor_dists_ = new flann::Matrix<double>(dists.ptr(), dists.rows, dists.cols);
+    
 }
 
 
