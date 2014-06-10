@@ -1,7 +1,6 @@
 
 #include <opencv2/highgui/highgui.hpp>
 #include <pcl/features/normal_3d.h>
-#include <XnCppWrapper.h>
 
 #include "point_cloud.h"
 
@@ -46,21 +45,22 @@ void PointCloud::load(const std::string &file)
     float constant = 575.8; // kinect focal length: 575.8
     int depth_idx = 0;
     for (int u = 0; u < height; ++u) {
-        for (int v = 0; v < width; ++v, ++depth_idx) {
+        for (int v = 0; v < width; ++v) {
             Point &pt = points[depth_idx];
             pt.z = depth_map_.at<float>(u, v) * 0.001f; // mm -> m
             pt.x = (v - float(width) / 2) * pt.z / constant;
             pt.y = (float(height) / 2 - u) * pt.z / constant;
  //           std::cout << pt.x << " "<< pt.y << " "<< pt.z << std::endl;
  //           std::cout << depth_idx << std::endl;
+            ++ depth_idx;
         }
     }
-    
+    std::cout << depth_idx << std::endl;
     sensor_origin_.setZero();
     sensor_orientation_.w() = 0.0f;
-    sensor_orientation_.x() = 1.0f;
+    sensor_orientation_.x() = 0.0f;
     sensor_orientation_.y() = 0.0f;
-    sensor_orientation_.z() = 0.0f;
+    sensor_orientation_.z() = 1.0f;
 // 
 //     //  PointCloud::print(this);
 // 
@@ -290,5 +290,4 @@ void PointCloud::buildUnknownsMap()
     }
 
 }
-
 
