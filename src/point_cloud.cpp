@@ -27,12 +27,10 @@ void PointCloud::binding()
     sampling();
     connecting();
     parameterize();
-    buildUnknownsMap();
 }
 
-void PointCloud::load(const std::string &file)
+void PointCloud::load(const std::string &file, bool flag)
 {
-    
     depth_map_ = cv::imread(file, CV_LOAD_IMAGE_ANYDEPTH);  // Read the file
     depth_map_.convertTo(depth_map_, CV_32F); // convert the image data to float type
 
@@ -41,21 +39,22 @@ void PointCloud::load(const std::string &file)
     is_dense = false;
     points.resize(height * width);
 
-
+    const float z_threshold = 2.0f;
     float constant = 575.8; // kinect focal length: 575.8
     int depth_idx = 0;
     for (int u = 0; u < height; ++u) {
         for (int v = 0; v < width; ++v) {
             Point &pt = points[depth_idx];
             pt.z = depth_map_.at<float>(u, v) * 0.001f; // mm -> m
+            if (flag == false & pt.z > z_threshold){
+                continue;
+            }
             pt.x = (v - float(width) / 2) * pt.z / constant;
             pt.y = (float(height) / 2 - u) * pt.z / constant;
- //           std::cout << pt.x << " "<< pt.y << " "<< pt.z << std::endl;
- //           std::cout << depth_idx << std::endl;
             ++ depth_idx;
         }
     }
-    std::cout << depth_idx << std::endl;
+    
     sensor_origin_.setZero();
     sensor_orientation_.w() = 0.0f;
     sensor_orientation_.x() = 0.0f;
@@ -262,32 +261,5 @@ void PointCloud::kNearestSearch(const int k)
     neighbor_dists_ = new flann::Matrix<double>(dists.ptr(), dists.rows, dists.cols);
 }
 
-// remember the order of the parameters
-void PointCloud::buildUnknownsMap()
-{
-    size_t unknown_index = 0;
 
-    //every node has 15 parameters
-    for (DeformationGraph::NodeIt it(*deformation_graph_); it != lemon::INVALID; ++ it) {
-
-        for (size_t i = 0; i < 3; i ++) {
-            for (size_t j = 0; j < 3; j ++) {
-                unknowns_map_.insert(std::make_pair(unknown_index++, &((*parameter_map_)[it].affi_rot_(j, i))));
-            }
-        }
-        for (size_t i = 0; i < 3; i ++) {
-            unknowns_map_.insert(std::make_pair(unknown_index++, &((*parameter_map_)[it].affi_trans_(i))));
-        }
-        for (size_t j = 0; j < 3; j ++) {
-            unknowns_map_.insert(std::make_pair(unknown_index++, &((*parameter_map_)[it].correspondence_(j))));
-        }
-    }
-
-    // lack of rigid_rot_ unknowns
-
-    for (size_t i = 0; i < 3; i ++) {
-        unknowns_map_.insert(std::make_pair(unknown_index++, &rigid_trans_(i)));
-    }
-
-}
 

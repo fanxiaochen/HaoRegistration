@@ -22,7 +22,7 @@ public:
     PointCloud();
     virtual ~PointCloud();
 
-    void load(const std::string &file);
+    void load(const std::string &file, bool flag = true); // flag for source or target 
     Point getPointFromDepthMap(int u, int v);
 
     void binding();
@@ -51,7 +51,7 @@ public:
     }
 
     void transform();
-
+     
     static void print(PointCloud *pointcloud) {
         for (size_t i = 0, i_end = pointcloud->size(); i < i_end; i ++) {
             const Point &point = pointcloud->at(i);
@@ -59,12 +59,11 @@ public:
         }
     }
 
-
+    
 private:
     virtual void sampling();
     void connecting();
     void parameterize();
-    void buildUnknownsMap();
 
     void kNearestSearch(const int k);
     void evaluateNormal();
@@ -94,7 +93,6 @@ private:
 
     Eigen::Vector3d mass_center_;
 
-    Eigen::VectorXd unknowns_;
 };
 
 
