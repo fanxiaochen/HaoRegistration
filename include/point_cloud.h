@@ -22,7 +22,7 @@ public:
     PointCloud();
     virtual ~PointCloud();
 
-    void load(const std::string &file, bool flag = true); // flag for source or target 
+    void load(const std::string &file, bool flag = true); // true for structured, false for unstructured
     Point getPointFromDepthMap(int u, int v);
 
     void binding();

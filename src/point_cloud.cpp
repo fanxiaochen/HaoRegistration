@@ -25,39 +25,42 @@ void PointCloud::binding()
     parameter_map_ = new ParameterMap(deformation_graph_);
 
     sampling();
-    connecting();
-    parameterize();
+ //   connecting();
+ //   parameterize();
 }
 
 void PointCloud::load(const std::string &file, bool flag)
 {
     depth_map_ = cv::imread(file, CV_LOAD_IMAGE_ANYDEPTH);  // Read the file
     depth_map_.convertTo(depth_map_, CV_32F); // convert the image data to float type
-
-    width = depth_map_.cols;
-    height = depth_map_.rows;
+    
     is_dense = false;
-    points.resize(height * width);
+    
+    // if true, the point cloud has depth map structure
+    if (flag){
+        width = depth_map_.cols;
+        height = depth_map_.rows;
+     //   points.resize(height * width);
+    }
 
     const int scale = 100;  // scale the raw data
     const float z_threshold = 2.0f; // for specified dataset
     float constant = 575.8; // kinect focal length: 575.8
-    int depth_idx = 0;
-    for (int u = 0; u < height; ++u) {
-        for (int v = 0; v < width; ++v) {
-            Point &pt = points[depth_idx];
+    for (int u = 0; u < depth_map_.rows; ++u) {
+        for (int v = 0; v < depth_map_.cols; ++v) {
+            Point pt;
             pt.z = depth_map_.at<float>(u, v) * 0.001f; // mm -> m
             if (flag == false & pt.z > z_threshold){
                 continue;
             }
-            pt.x = (v - float(width) / 2) * pt.z / constant;
-            pt.y = (float(height) / 2 - u) * pt.z / constant;
+            pt.x = (v - float(depth_map_.rows) / 2) * pt.z / constant;
+            pt.y = (float(depth_map_.cols) / 2 - u) * pt.z / constant;
             
             pt.z *= scale;
             pt.x *= scale;
             pt.y *= scale;
             
-            ++ depth_idx;
+            push_back(pt);
         }
     }
     

@@ -77,6 +77,7 @@ void Visualizer::drawGraph(PointCloud *point_cloud)
     
     for (PointCloud::DeformationGraph::NodeIt it(*defo_graph); it != lemon::INVALID; ++ it) {
         Point& point = point_cloud->at((*graph_map)[it]);
+        std::cout << point.x << point.y << point.z << point_cloud->size() <<std::endl;
         osg::Geode *node = new osg::Geode();
         osg::ref_ptr<osg::ShapeDrawable> shape = new osg::ShapeDrawable(
             new osg::Sphere(osg::Vec3(point.x, point.y, point.z), 1.0f));
