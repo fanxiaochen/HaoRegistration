@@ -2,6 +2,7 @@
 #define TYPES_H
 #include <pcl/point_types.h>
 #include <Eigen/Dense>
+#include <osg/Vec3>
 
 
 typedef pcl::PointXYZRGBNormal Point;
@@ -22,5 +23,14 @@ static Point POINT_EIGEN_CAST(const Eigen::Vector3d &vector)
     point.y = vector(1);
     point.z = vector(2);
     return point;
+}
+
+static osg::Vec3 OVEC_POINT_CAST(const Point& point)
+{
+    osg::Vec3 vector;
+    vector.x() = point.x;
+    vector.y() = point.y;
+    vector.z() = point.z;
+    return vector;
 }
 #endif //TYPES_H

@@ -15,7 +15,7 @@ public:
 
     void drawSource(PointCloud *source);
     void drawTarget(PointCloud *target);
-    void drawGraph(PointCloud *source);
+    void drawGraph(PointCloud *point_cloud);
 
     void visualize();
 
