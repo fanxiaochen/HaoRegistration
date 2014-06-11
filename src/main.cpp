@@ -5,7 +5,7 @@
 int main()
 {
     PointCloud* point_cloud = new PointCloud();
-    point_cloud->load("/home/xiaochenfan/images/7.png", false);
+    point_cloud->load("/home/xiaochenfan/images/8.png", false);
     point_cloud->setNodeNum(200);
     point_cloud->binding();
     Visualizer* visualizer = new Visualizer();

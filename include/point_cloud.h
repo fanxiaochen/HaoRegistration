@@ -46,8 +46,12 @@ public:
         return parameter_map_;
     }
 
-    inline Eigen::Vector3d getMassCenter() {
+    inline Eigen::Vector3d& getMassCenter() {
         return mass_center_;
+    }
+    
+    inline cv::Mat& getDepthMap(){
+        return depth_map_;
     }
 
     void transform();

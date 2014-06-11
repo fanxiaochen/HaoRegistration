@@ -26,7 +26,7 @@ void PointCloud::binding()
 
     sampling();
     connecting();
- //   parameterize();
+    parameterize();
 }
 
 void PointCloud::load(const std::string &file, bool flag)
@@ -41,7 +41,8 @@ void PointCloud::load(const std::string &file, bool flag)
         width = depth_map_.cols;
         height = depth_map_.rows;
     }
-
+    
+    // from depth map to point cloud, (u, v) -> (x, y ,z)
     const int scale = 100;  // scale the raw data
     const float z_threshold = 2.0f; // for specified dataset
     float constant = 575.8; // kinect focal length: 575.8
@@ -52,8 +53,10 @@ void PointCloud::load(const std::string &file, bool flag)
             if (flag == false && pt.z > z_threshold){
                 continue;
             }
-            pt.x = (v - float(depth_map_.rows) / 2) * pt.z / constant;
-            pt.y = (float(depth_map_.cols) / 2 - u) * pt.z / constant;
+            // coordinate system, from upper-left to center in image plane
+            // then plane to 3D                                                             
+            pt.x = (v - float(depth_map_.cols) / 2) * pt.z / constant; 
+            pt.y = (float(depth_map_.rows) / 2 - u) * pt.z / constant;
             
             pt.z *= scale;
             pt.x *= scale;
@@ -72,6 +75,7 @@ void PointCloud::load(const std::string &file, bool flag)
 //     //  PointCloud::print(this);
 // 
 //     //  evaluateNormal();
+    evaluateMassCenter();
 }
 
 void PointCloud::evaluateNormal()

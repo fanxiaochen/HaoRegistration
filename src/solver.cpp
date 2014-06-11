@@ -1,7 +1,7 @@
 #include "solver.h"
 
-Solver::Solver(PointCloud *point_cloud)
-    : point_cloud_(point_cloud)
+Solver::Solver(PointCloud *source, PointCloud* target)
+    : source_(source), target_(target)
 {
     initCoeffs();
 }
@@ -21,9 +21,9 @@ void Solver::initCoeffs()
 
 void Solver::buildProblem()
 {
-    PointCloud::DeformationGraph *graph = point_cloud_->getDeformationGraph();
-    ParameterMap *para_map = point_cloud_->getParameterMap();
-    GraphMap *graph_map = point_cloud_->getGraphMap();
+    PointCloud::DeformationGraph *graph = source_->getDeformationGraph();
+    ParameterMap *para_map = source_->getParameterMap();
+    GraphMap *graph_map = source_->getGraphMap();
     for (PointCloud::DeformationGraph::NodeIt it(*graph); it != lemon::INVALID; ++ it) {
         Parameters &paras = (*para_map)[it];
         
@@ -33,10 +33,10 @@ void Solver::buildProblem()
         problem_.AddResidualBlock(rigid_function, NULL, paras.affi_rot_.data());
         
         //second energy term
-        Eigen::Vector3d m_point = EIGEN_POINT_CAST(point_cloud_->at((*graph_map)[it]));
+        Eigen::Vector3d m_point = EIGEN_POINT_CAST(source_->at((*graph_map)[it]));
         for (PointCloud::DeformationGraph::IncEdgeIt e(*graph, it); e != lemon::INVALID; ++ e) {
             PointCloud::DeformationGraph::Node node = graph->target(e);
-            Eigen::Vector3d s_point = EIGEN_POINT_CAST(point_cloud_->at((*graph_map)[node]));
+            Eigen::Vector3d s_point = EIGEN_POINT_CAST(source_->at((*graph_map)[node]));
             CostFunction *smooth_function = new ceres::AutoDiffCostFunction<SmoothFunctor, 3, 9, 3, 3>(
                 new SmoothFunctor(smooth_alpha_, m_point, s_point));
             problem_.AddResidualBlock(smooth_function, NULL, paras.affi_rot_.data(), 
@@ -44,17 +44,17 @@ void Solver::buildProblem()
         }
         
         //third energy term
-        Eigen::Vector3d point = EIGEN_POINT_CAST(point_cloud_->at((*graph_map)[it]));
-        Eigen::Vector3d mass_center = point_cloud_->getMassCenter();
-        CostFunction *fit_function = new ceres::AutoDiffCostFunction<FitFunctor, 3, 2, 3, 3>(
-            new FitFunctor(fit_alpha_, point, mass_center));
-        // problem_.AddResidualBlock(fit_function, NULL, point_cloud_->rigid_rot_.data(), point_cloud_->rigid_trans_.data() );  lack of u,v parameters
+        Eigen::Vector3d point = EIGEN_POINT_CAST(source_->at((*graph_map)[it]));
+        Eigen::Vector3d mass_center = source_->getMassCenter();
+        CostFunction *fit_function = new ceres::NumericDiffCostFunction<FitFunctor, ceres::CENTRAL, 3, 2, 3, 3>(
+            new FitFunctor(fit_alpha_, point, mass_center, &(source_->getDepthMap())));
+        problem_.AddResidualBlock(fit_function, NULL, paras.correspondence_.data(), 
+                                  source_->rigid_rot_.data(), source_->rigid_trans_.data());
 
         //forth energy term
         CostFunction *conf_function = new ceres::AutoDiffCostFunction<ConfFunctor, 1, 1>(
             new ConfFunctor(conf_alpha_));
-        problem_.AddResidualBlock(conf_function, NULL, paras.correspondence_.data());
-
+        problem_.AddResidualBlock(conf_function, NULL, (paras.correspondence_.data()+2));
     }
 }
 
