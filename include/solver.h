@@ -165,9 +165,11 @@ public:
     ~Solver();
 
     void buildProblem();
-    void setOptions();
-    void initCoeffs();
+    void setOptions();  
     void apply();
+    
+private:
+    void initCoeffs();
 
 private:
     PointCloud *source_;

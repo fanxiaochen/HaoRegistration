@@ -1,25 +1,31 @@
 
 #include "point_cloud.h"
 #include "visualizer.h"
+#include "solver.h"
 
 int main()
 {
     PointCloud* source = new PointCloud();
-//    PointCloud* target = new PointCloud();
+    PointCloud* target = new PointCloud();
     source->load("/home/xiaochenfan/images/0.png", false);
-//    target->load("/home/xiaochenfan/images/5.png");
+    target->load("/home/xiaochenfan/images/5.png");
     source->setColor(121, 5, 237);
- //   target->setColor(121, 237, 5);
+    target->setColor(121, 237, 5);
     source->setNodeNum(200);
     source->binding();
     
-    Visualizer* visualizer = new Visualizer();
-    visualizer->init();
-    visualizer->closeLight();
-    visualizer->drawPointCloud(source);
-//    visualizer->drawTarget(target);
-    visualizer->drawGraph(source);
-    visualizer->visualize();
+//     Visualizer* visualizer = new Visualizer();
+//     visualizer->init();
+//     visualizer->closeLight();
+//     visualizer->drawPointCloud(source);
+//     visualizer->drawPointCloud(target);
+//     visualizer->drawGraph(source);
+//     visualizer->visualize();
+    
+    Solver* solver = new Solver(source, target);
+    solver->buildProblem();
+    solver->setOptions();
+    solver->apply();
 
     return 0;
 }
