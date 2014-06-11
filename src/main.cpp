@@ -4,14 +4,20 @@
 
 int main()
 {
-    PointCloud* point_cloud = new PointCloud();
-    point_cloud->load("/home/xiaochenfan/images/8.png", false);
-    point_cloud->setNodeNum(200);
-    point_cloud->binding();
+    PointCloud* source = new PointCloud();
+    PointCloud* target = new PointCloud();
+    source->load("/home/xiaochenfan/images/0.png", false);
+    target->load("/home/xiaochenfan/images/5.png");
+    source->setColor(121, 5, 237);
+    target->setColor(121, 237, 5);
+    source->setNodeNum(200);
+    source->binding();
+    
     Visualizer* visualizer = new Visualizer();
     visualizer->init();
-    visualizer->drawSource(point_cloud);
-    visualizer->drawGraph(point_cloud);
+    visualizer->drawSource(source);
+    visualizer->drawTarget(target);
+    visualizer->drawGraph(source);
     visualizer->visualize();
 
     return 0;

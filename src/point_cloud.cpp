@@ -281,5 +281,16 @@ void PointCloud::kNearestSearch(const int k)
     
 }
 
+void PointCloud::setColor(size_t r, size_t g, size_t b)
+{
+    for (size_t i = 0, i_end = size(); i < i_end; i ++)
+    {
+        Point& point = at(i);
+        point.r = r;
+        point.g = g;
+        point.b = b;
+    }
+    return;
+}
 
 

@@ -20,7 +20,7 @@ Visualizer::~Visualizer()
 void Visualizer::init()
 {
     viewer_->setSceneData(scene_root_);
-//    viewer_->getCamera()->setClearColor(osg::Vec4(188 / 255.0, 234 / 255.0, 245 / 255.0, 1.0));
+    viewer_->getCamera()->setClearColor(osg::Vec4(1.0, 1.0, 1.0, 1.0));
     viewer_->addEventHandler(new osgViewer::StatsHandler);
     viewer_->setCameraManipulator(new osgGA::TrackballManipulator);
 // Use single thread here to avoid known issues under Linux

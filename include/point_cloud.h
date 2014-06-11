@@ -62,7 +62,8 @@ public:
             std::cout << "x:" << point.x << " y:" << point.y << " z:" << point.z << std::endl;
         }
     }
-
+    
+    void setColor(size_t r, size_t g, size_t b);
     
 private:
     virtual void sampling();
