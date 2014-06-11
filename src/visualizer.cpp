@@ -27,7 +27,7 @@ void Visualizer::init()
     viewer_->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 }
 
-void Visualizer::drawImpl(PointCloud *point_cloud)
+void Visualizer::drawPointCloud(PointCloud *point_cloud)
 {
     osg::ref_ptr<osg::Vec3Array>  vertices = new osg::Vec3Array;
     osg::ref_ptr<osg::Vec3Array>  normals = new osg::Vec3Array;
@@ -37,7 +37,7 @@ void Visualizer::drawImpl(PointCloud *point_cloud)
         const Point &point = point_cloud->at(i);
         vertices->push_back(osg::Vec3(point.x, point.y, point.z));
         normals->push_back(osg::Vec3(point.normal_x, point.normal_y, point.normal_z));
-        colors->push_back(osg::Vec4(point.r / 255.0, point.g / 255.0, point.b / 255.0, 1.0));
+        colors->push_back(osg::Vec4(point.r / 255.0, point.g / 255.0, point.b / 255.0, point.a / 255.0));
     }
 
     size_t item_num = vertices->size();
@@ -51,22 +51,10 @@ void Visualizer::drawImpl(PointCloud *point_cloud)
     geometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, item_num));
     geometry->getOrCreateStateSet()->setAttribute(new osg::Point(2.0f));
 
-    osg::Geode *geode = new osg::Geode();
+    osg::ref_ptr<osg::Geode> geode = new osg::Geode();
     geode->addDrawable(geometry);
     scene_root_->addChild(geode);
 
-    return;
-}
-
-void Visualizer::drawSource(PointCloud *source)
-{
-    drawImpl(source);
-    return;
-}
-
-void Visualizer::drawTarget(PointCloud *target)
-{
-    drawImpl(target);
     return;
 }
 
@@ -131,4 +119,10 @@ void Visualizer::drawGraph(PointCloud *point_cloud)
 void Visualizer::visualize()
 {
     viewer_->run();
+}
+
+void Visualizer::closeLight()
+{
+    scene_root_->getOrCreateStateSet()->setMode(
+        GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::PROTECTED);
 }

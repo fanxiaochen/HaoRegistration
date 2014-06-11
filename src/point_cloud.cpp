@@ -289,6 +289,7 @@ void PointCloud::setColor(size_t r, size_t g, size_t b)
         point.r = r;
         point.g = g;
         point.b = b;
+        point.a = 255;
     }
     return;
 }
