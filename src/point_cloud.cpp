@@ -7,7 +7,10 @@
 
 PointCloud::PointCloud()
 {
-
+    node_num_ = 0;
+    rigid_rot_.setZero();
+    rigid_trans_.setZero();
+    mass_center_.setZero();
 }
 
 PointCloud::~PointCloud()
