@@ -45,32 +45,34 @@ using ceres::Solve;
 
 struct CostFunctor {
     template <typename T>
-    bool operator()(const T *const x, T *residual) const {
-        residual[0] = 4.0*(T(10.0) - x[0] - x[1]);
-//         residual[1] = 2.0*x[0] - x[0] * x[1];
+    bool operator()(T const* const* x, T *residual) const {
+        T const* a = x[0];
+        T const* b = x[1];
+        residual[0] = 4.0*(T(10.0) - a[0] - b[0]);
+        residual[1] = 2.0*b[0] - a[1] * b[1];
         return true;
     }
 };
 
-class Test
-{
-public:
-    Test(double* x){x_ = x;}
-    double compute(){return 2*x_[0] - x_[1];}
-private:
-    double* x_;
-};
-
-struct TestFunctor {
-    TestFunctor(Test* t){t_ = t;}
-    template <typename T>
-    bool operator()(const T *const x, T *residual) const {
-        residual[0] = t_->compute() * x[0] - 2 * x[1];
-        return true;
-    }
-private:
-    Test* t_;
-};
+// class Test
+// {
+// public:
+//     Test(double* x){x_ = x;}
+//     double compute(){return 2*x_[0] - x_[1];}
+// private:
+//     double* x_;
+// };
+// 
+// struct TestFunctor {
+//     TestFunctor(Test* t){t_ = t;}
+//     template <typename T>
+//     bool operator()(const T *const x, T *residual) const {
+//         residual[0] = t_->compute() * x[0] - 2 * x[1];
+//         return true;
+//     }
+// private:
+//     Test* t_;
+// };
 
 
 
@@ -79,20 +81,29 @@ int main(int argc, char **argv)
 // google::InitGoogleLogging(argv[0]);
 
     // The variable to solve for with its initial value.
+    
     double x[2] = {10, 10};
-    Test t(x);
+    double y[2] = {5, 5};
+    std::vector<double*> tmp;
+    tmp.push_back(x);
+    tmp.push_back(y);
+  //  Test t(x);
 
     // Build the problem.
     Problem problem;
 
     // Set up the only cost function (also known as residual). This uses
     // auto-differentiation to obtain the derivative (jacobian).
-    CostFunction *cost_function =
-        new ceres::NumericDiffCostFunction<CostFunctor, ceres::CENTRAL, 1, 2>(new CostFunctor);
-    CostFunction *test_function =
-        new ceres::NumericDiffCostFunction<TestFunctor, ceres::CENTRAL, 1, 2>(new TestFunctor(&t));    
-    problem.AddResidualBlock(cost_function, NULL, x);
-    problem.AddResidualBlock(test_function, NULL, x);
+    ceres::DynamicNumericDiffCostFunction<CostFunctor> *cost_function =
+        new ceres::DynamicNumericDiffCostFunction<CostFunctor>(new CostFunctor);
+    cost_function->AddParameterBlock(2);
+    cost_function->AddParameterBlock(2);
+    cost_function->SetNumResiduals(2);
+    
+//     CostFunction *test_function =
+//         new ceres::NumericDiffCostFunction<TestFunctor, ceres::CENTRAL, 1, 2>(new TestFunctor(&t));    
+    problem.AddResidualBlock(cost_function, NULL, tmp);
+ //   problem.AddResidualBlock(test_function, NULL, x);
 
     // Run the solver!
     Solver::Options options;
@@ -105,6 +116,8 @@ int main(int argc, char **argv)
     std::cout << summary.BriefReport() << "\n";
     std::cout << "x : "
               << " -> " << x[0] << " " << x[1] << "\n";
+    std::cout << "y : "
+              << " -> " << y[0] << " " << y[1] << "\n";
   
     return 0;
 }
