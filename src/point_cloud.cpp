@@ -323,36 +323,42 @@ void PointCloud::setColor(size_t r, size_t g, size_t b)
     return;
 }
 
-void PointCloud::getCorrespondenceByKnn(const DeformationGraph::Node &node, pcl::KdTree<Point>::PointCloudConstPtr& cloud, PointCloud *target)
+void PointCloud::getCorrespondenceByKnn(PointCloud *target)
 {
-    Parameters& paras = (*parameter_map_)[node];
-    Point &point = at((*graph_map_)[node]);
-    
     int rows = target->getDepthMap().rows;
     int cols = target->getDepthMap().cols;
 
     pcl::KdTreeFLANN<Point> kdtree;
+    PointCloud::Ptr cloud(target);
     kdtree.setInputCloud(cloud);
 
     // K nearest neighbor search
 
     int K = 1;
 
-    std::vector<int> pointIdxNKNSearch(K);
-    std::vector<float> pointNKNSquaredDistance(K);
+    for (PointCloud::DeformationGraph::NodeIt it(*deformation_graph_); it != lemon::INVALID; ++ it) {
+        Parameters &paras = (*parameter_map_)[it];
+        Point &point = at((*graph_map_)[it]);
 
-    if (kdtree.nearestKSearch(point, K, pointIdxNKNSearch, pointNKNSquaredDistance) > 0) {
-        Point &corres = target->at(pointIdxNKNSearch[0]);
+        std::vector<int> pointIdxNKNSearch(K);
+        std::vector<float> pointNKNSquaredDistance(K);
 
-        // from (x, y ,z) to (u, v)
-        float constant = 575.8; // kinect focal length: 575.8
-        double u, v;
-        v = (corres.x * constant) / corres.z + cols /  2;
-        u = rows / 2 - (corres.y * constant) / corres.z;
+        if (kdtree.nearestKSearch(point, K, pointIdxNKNSearch, pointNKNSquaredDistance) > 0) {
+            Point &corres = target->at(pointIdxNKNSearch[0]);
 
-        paras.correspondence_[0] = u;
-        paras.correspondence_[1] = v;
+            // from (x, y ,z) to (u, v)
+            float constant = 575.8; // kinect focal length: 575.8
+            double u, v;
+            v = (corres.x * constant) / corres.z + cols /  2;
+            u = rows / 2 - (corres.y * constant) / corres.z;
+
+            paras.correspondence_[0] = u;
+            paras.correspondence_[1] = v;
+        }
+
     }
+
+    return;
 }
 
 

@@ -4,7 +4,6 @@
 #include <vector>
 
 #include <pcl/point_cloud.h>
-#include <pcl/kdtree/kdtree.h>
 #include <opencv2/core/core.hpp>
 #include <lemon/list_graph.h>
 #include <flann/flann.hpp>
@@ -67,7 +66,7 @@ public:
     
     void setColor(size_t r, size_t g, size_t b);
     
-    void getCorrespondenceByKnn(const DeformationGraph::Node& node, pcl::KdTree<Point>::PointCloudConstPtr& cloud, PointCloud* target);
+    void getCorrespondenceByKnn(PointCloud* target);
     
 private:
     virtual void sampling();

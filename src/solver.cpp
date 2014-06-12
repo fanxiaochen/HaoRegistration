@@ -1,5 +1,4 @@
 #include "solver.h"
-#include <pcl/kdtree/kdtree.h>
 
 Solver::Solver(PointCloud *source, PointCloud *target)
     : source_(source),
@@ -32,10 +31,8 @@ void Solver::initParameters()
         paras.affi_rot_.setIdentity();
         paras.affi_trans_.setZero();
         paras.correspondence_[2] = 1;
-        
-        pcl::KdTree<Point>::PointCloudConstPtr cloud(target_);
-        source_->getCorrespondenceByKnn(it, cloud, target_); // knn for initial u, v
     }
+    source_->getCorrespondenceByKnn(target_); // knn for initial u, v
 }
 
 void Solver::buildProblem()
