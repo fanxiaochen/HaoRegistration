@@ -1,9 +1,14 @@
 #include "solver.h"
 
 Solver::Solver(PointCloud *source, PointCloud* target)
-    : source_(source), target_(target)
+    : source_(source), 
+    target_(target),
+    rigid_alpha_(1000),
+    smooth_alpha_(100),
+    fit_alpha_(0.1),
+    conf_alpha_(100)
 {
-    initCoeffs();
+   
 }
 
 Solver::~Solver()
@@ -11,12 +16,9 @@ Solver::~Solver()
 
 }
 
-void Solver::initCoeffs()
+void Solver::initParameters()
 {
-    rigid_alpha_ = 1000;
-    smooth_alpha_ = 100;
-    fit_alpha_ = 0.1;
-    conf_alpha_ = 100;
+    
 }
 
 void Solver::buildProblem()

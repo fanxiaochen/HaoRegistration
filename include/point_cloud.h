@@ -55,6 +55,7 @@ public:
     }
 
     void transform();
+    void transform(size_t index);
      
     static void print(PointCloud *pointcloud) {
         for (size_t i = 0, i_end = pointcloud->size(); i < i_end; i ++) {

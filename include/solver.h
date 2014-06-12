@@ -110,17 +110,22 @@ struct FitFunctor {
         T u = (plane_paras[1] - T(_depth_map->cols) / T(2)) * depth / T(constant); 
         T v = (T(_depth_map->rows) / T(2) - plane_paras[0]) * depth / T(constant);
         
-        Eigen::Vector3d delta_2;
-        delta_2(0) = u - _mass_center(0);
-        delta_2(1) = v - _mass_center(1);
-        delta_2(2) = depth - _mass_center(2);
+        // have not added rigid transformation here
+        residual_2[0] = u;
+        residual_2[1] = v;
+        residual_2[2] = depth;
         
-        residual_2[0] = INNER_PRODUCT(r[0], r[3], r[6], delta_2(0), 
-                                    delta_2(1), delta_2(2)) + _mass_center(0) + trans[0];
-        residual_2[1] = INNER_PRODUCT(r[1], r[4], r[7], delta_2(0), 
-                                    delta_2(1), delta_2(2)) + _mass_center(1) + trans[1];
-        residual_2[2] = INNER_PRODUCT(r[2], r[5], r[8], delta_2(0), 
-                                    delta_2(1), delta_2(2)) + _mass_center(2) + trans[2];
+//         Eigen::Vector3d delta_2;
+//         delta_2(0) = u - _mass_center(0);
+//         delta_2(1) = v - _mass_center(1);
+//         delta_2(2) = depth - _mass_center(2);
+//         
+//         residual_2[0] = INNER_PRODUCT(r[0], r[3], r[6], delta_2(0), 
+//                                     delta_2(1), delta_2(2)) + _mass_center(0) + trans[0];
+//         residual_2[1] = INNER_PRODUCT(r[1], r[4], r[7], delta_2(0), 
+//                                     delta_2(1), delta_2(2)) + _mass_center(1) + trans[1];
+//         residual_2[2] = INNER_PRODUCT(r[2], r[5], r[8], delta_2(0), 
+//                                     delta_2(1), delta_2(2)) + _mass_center(2) + trans[2];
         
         for (size_t i = 0; i < 3; i ++) {
             residual[i] = _coeff * (residual_1[i] - residual_2[i]);
@@ -164,12 +169,10 @@ public:
     Solver(PointCloud *source, PointCloud* target);
     ~Solver();
 
+    void initParameters();
     void buildProblem();
     void setOptions();  
     void apply();
-    
-private:
-    void initCoeffs();
 
 private:
     PointCloud *source_;

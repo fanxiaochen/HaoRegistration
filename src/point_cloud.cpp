@@ -33,15 +33,15 @@ void PointCloud::load(const std::string &file, bool flag)
 {
     depth_map_ = cv::imread(file, CV_LOAD_IMAGE_ANYDEPTH);  // Read the file
     depth_map_.convertTo(depth_map_, CV_32F); // convert the image data to float type
-    
+
     is_dense = false;
-    
+
     // if true, the point cloud has depth map structure
-    if (flag){
+    if (flag) {
         width = depth_map_.cols;
         height = depth_map_.rows;
     }
-    
+
     // from depth map to point cloud, (u, v) -> (x, y ,z)
     const int scale = 100;  // scale the raw data
     const float z_threshold = 2.0f; // for specified dataset
@@ -50,30 +50,30 @@ void PointCloud::load(const std::string &file, bool flag)
         for (int v = 0; v < depth_map_.cols; ++v) {
             Point pt;
             pt.z = depth_map_.at<float>(u, v) * 0.001f; // mm -> m
-            if (flag == false && pt.z > z_threshold){
+            if (flag == false && pt.z > z_threshold) {
                 continue;
             }
             // coordinate system, from upper-left to center in image plane
-            // then plane to 3D                                                             
-            pt.x = (v - float(depth_map_.cols) / 2) * pt.z / constant; 
+            // then plane to 3D
+            pt.x = (v - float(depth_map_.cols) / 2) * pt.z / constant;
             pt.y = (float(depth_map_.rows) / 2 - u) * pt.z / constant;
-            
+
             pt.z *= scale;
             pt.x *= scale;
             pt.y *= scale;
-            
+
             push_back(pt);
         }
     }
-    
+
     sensor_origin_.setZero();
     sensor_orientation_.w() = 0.0f;
     sensor_orientation_.x() = 0.0f;
     sensor_orientation_.y() = 0.0f;
     sensor_orientation_.z() = 1.0f;
-// 
+//
 //     //  PointCloud::print(this);
-// 
+//
 //     //  evaluateNormal();
     evaluateMassCenter();
 }
@@ -153,6 +153,7 @@ Point PointCloud::localTransform(size_t j)
     return POINT_EIGEN_CAST(vector);
 }
 
+
 Point PointCloud::globalTransform(const Point &point)
 {
     Eigen::Matrix3d rotation;
@@ -160,10 +161,22 @@ Point PointCloud::globalTransform(const Point &point)
     double x = rigid_rot_(1);
     double y = rigid_rot_(2);
     double z = sqrt(1 - x * x - y * y);
-    rotation << cos(theta) + (1 - cos(theta))*x *x, (1 - cos(theta))*x *y - sin(theta)*z, (1 - cos(theta))*x *z + sin(theta)*y,
-             (1 - cos(theta))*y *z + sin(theta)*z, cos(theta) + (1 - cos(theta))*y *y, (1 - cos(theta))*y *z - sin(theta)*x,
-             (1 - cos(theta))*z *x - sin(theta)*y, (1 - cos(theta))*z *y + sin(theta)*x, cos(theta) + (1 - cos(theta))*z *z;
 
+    double r[9]; // rotation matrix in axis-angle form
+    r[0] = cos(theta) + (double(1) - cos(theta)) * x * x;
+    r[1] = (double(1) - cos(theta)) * y * x + sin(theta) * z;
+    r[2] = (double(1) - cos(theta)) * z * x - sin(theta) * y;
+    r[3] = (double(1) - cos(theta)) * x * y - sin(theta) * z;
+    r[4] = cos(theta) + (double(1) - cos(theta)) * y * y;
+    r[5] = (double(1) - cos(theta)) * z * y + sin(theta) * x;
+    r[6] = (double(1) - cos(theta)) * x * z + sin(theta) * y;
+    r[7] = (double(1) - cos(theta)) * y * z - sin(theta) * x;
+    r[8] = cos(theta) + (double(1) - cos(theta)) * z * z;
+    
+    rotation << r[0], r[3], r[6],
+                r[1], r[4], r[7],
+                r[2], r[5], r[8];
+                
     Eigen::Vector3d eigen_point = EIGEN_POINT_CAST(point);
     Eigen::Vector3d tran_point = rotation * (eigen_point - mass_center_) + mass_center_ + rigid_trans_;
     return POINT_EIGEN_CAST(tran_point);
@@ -173,9 +186,15 @@ void PointCloud::transform()
 {
     for (size_t j = 0, j_end = size(); j < j_end; j ++) {
         // how about normals?
-        Point point = globalTransform(localTransform(j));
-        at(j) = point;
+        transform(j);
     }
+}
+
+void PointCloud::transform(size_t index)
+{
+    // normals, colors...
+    Point point = globalTransform(localTransform(index));
+    at(index) = point;
 }
 
 Point PointCloud::getPointFromDepthMap(int u, int v)
@@ -207,7 +226,7 @@ void PointCloud::sampling()
 void PointCloud::connecting()
 {
     kNearestSearch(k_);
-    
+
     std::set<Edge, CompareEdge> edges;
     for (size_t t = 0, t_end = nearest_neighbors_->rows; t < t_end; t ++) {
         for (size_t i = 0, i_end = nearest_neighbors_->cols - 1; i < i_end; i ++) {
@@ -241,7 +260,7 @@ void PointCloud::kNearestSearch(const int k)
     std::map<size_t, size_t> index_mapping;
     size_t i = 0;
     for (DeformationGraph::NodeIt it(*deformation_graph_); it != lemon::INVALID; ++ it, i ++) {
-        Point& point = at((*graph_map_)[it]);
+        Point &point = at((*graph_map_)[it]);
         data_set[i][0] = point.x;
         data_set[i][1] = point.y;
         data_set[i][2] = point.z;
@@ -252,9 +271,9 @@ void PointCloud::kNearestSearch(const int k)
 //         }
         index_mapping.insert(std::pair<size_t, size_t>(i, (*graph_map_)[it]));
     }
-    
-    for (size_t j = 0, j_end = size(); j < j_end; j ++){
-        Point& point = at(j);
+
+    for (size_t j = 0, j_end = size(); j < j_end; j ++) {
+        Point &point = at(j);
         query[j][0] = point.x;
         query[j][1] = point.y;
         query[j][2] = point.z;
@@ -278,14 +297,13 @@ void PointCloud::kNearestSearch(const int k)
 
     nearest_neighbors_ = new flann::Matrix<int>(indices.ptr(), indices.rows, indices.cols);
     neighbor_dists_ = new flann::Matrix<double>(dists.ptr(), dists.rows, dists.cols);
-    
+
 }
 
 void PointCloud::setColor(size_t r, size_t g, size_t b)
 {
-    for (size_t i = 0, i_end = size(); i < i_end; i ++)
-    {
-        Point& point = at(i);
+    for (size_t i = 0, i_end = size(); i < i_end; i ++) {
+        Point &point = at(i);
         point.r = r;
         point.g = g;
         point.b = b;
