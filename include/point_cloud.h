@@ -66,6 +66,8 @@ public:
     
     void setColor(size_t r, size_t g, size_t b);
     
+    void getCorrespondenceByKnn(const DeformationGraph::Node& node, PointCloud* target);
+    
 private:
     virtual void sampling();
     void connecting();

@@ -23,6 +23,7 @@ int main()
 //     visualizer->visualize();
     
     Solver* solver = new Solver(source, target);
+    solver->initParameters();
     solver->buildProblem();
     solver->setOptions();
     solver->apply();

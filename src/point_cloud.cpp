@@ -46,9 +46,7 @@ void PointCloud::load(const std::string &file, bool flag)
     }
 
     // from depth map to point cloud, (u, v) -> (x, y ,z)
-    const int scale = 100;  // scale the raw data
     const float z_threshold = 2.0f; // for specified dataset
-    float constant = 575.8; // kinect focal length: 575.8
     for (int u = 0; u < depth_map_.rows; ++u) {
         for (int v = 0; v < depth_map_.cols; ++v) {
             Point pt;
@@ -58,13 +56,7 @@ void PointCloud::load(const std::string &file, bool flag)
             }
             // coordinate system, from upper-left to center in image plane
             // then plane to 3D
-            pt.x = (v - float(depth_map_.cols) / 2) * pt.z / constant;
-            pt.y = (float(depth_map_.rows) / 2 - u) * pt.z / constant;
-
-            pt.z *= scale;
-            pt.x *= scale;
-            pt.y *= scale;
-
+            pt = getPointFromDepthMap(u, v);
             push_back(pt);
         }
     }
@@ -79,6 +71,27 @@ void PointCloud::load(const std::string &file, bool flag)
 //
 //     //  evaluateNormal();
     evaluateMassCenter();
+}
+
+Point PointCloud::getPointFromDepthMap(int u, int v)
+{
+    // from depth map to point cloud, (u, v) -> (x, y ,z)
+    const int scale = 100;  // scale the raw data
+    float constant = 575.8; // kinect focal length: 575.8
+
+    Point pt;
+    pt.z = depth_map_.at<float>(u, v) * 0.001f; // mm -> m
+
+    // coordinate system, from upper-left to center in image plane
+    // then plane to 3D
+    pt.x = (v - float(depth_map_.cols) / 2) * pt.z / constant;
+    pt.y = (float(depth_map_.rows) / 2 - u) * pt.z / constant;
+
+    pt.z *= scale;
+    pt.x *= scale;
+    pt.y *= scale;
+
+    return pt;
 }
 
 void PointCloud::evaluateNormal()
@@ -175,11 +188,11 @@ Point PointCloud::globalTransform(const Point &point)
     r[6] = (double(1) - cos(theta)) * x * z + sin(theta) * y;
     r[7] = (double(1) - cos(theta)) * y * z - sin(theta) * x;
     r[8] = cos(theta) + (double(1) - cos(theta)) * z * z;
-    
+
     rotation << r[0], r[3], r[6],
-                r[1], r[4], r[7],
-                r[2], r[5], r[8];
-                
+             r[1], r[4], r[7],
+             r[2], r[5], r[8];
+
     Eigen::Vector3d eigen_point = EIGEN_POINT_CAST(point);
     Eigen::Vector3d tran_point = rotation * (eigen_point - mass_center_) + mass_center_ + rigid_trans_;
     return POINT_EIGEN_CAST(tran_point);
@@ -198,12 +211,6 @@ void PointCloud::transform(size_t index)
     // normals, colors...
     Point point = globalTransform(localTransform(index));
     at(index) = point;
-}
-
-Point PointCloud::getPointFromDepthMap(int u, int v)
-{
-
-    return Point();
 }
 
 void PointCloud::setNodeNum(size_t node_num)
@@ -313,6 +320,40 @@ void PointCloud::setColor(size_t r, size_t g, size_t b)
         point.a = 255;
     }
     return;
+}
+
+void PointCloud::getCorrespondenceByKnn(const DeformationGraph::Node &node, PointCloud *target)
+{
+    Parameters paras = (*parameter_map_)[node];
+    Point &point = at((*graph_map_)[node]);
+    
+    int rows = target->getDepthMap().rows;
+    int cols = target->getDepthMap().cols;
+
+    pcl::KdTreeFLANN<Point> kdtree;
+    pcl::PointCloud<Point>::Ptr cloud(target);
+
+    kdtree.setInputCloud(cloud);
+
+    // K nearest neighbor search
+
+    int K = 1;
+
+    std::vector<int> pointIdxNKNSearch(K);
+    std::vector<float> pointNKNSquaredDistance(K);
+
+    if (kdtree.nearestKSearch(point, K, pointIdxNKNSearch, pointNKNSquaredDistance) > 0) {
+        Point &corres = points[pointIdxNKNSearch[0]];
+
+        // from (x, y ,z) to (u, v)
+        float constant = 575.8; // kinect focal length: 575.8
+        double u, v;
+        v = (corres.x * constant) / corres.z + cols /  2;
+        u = rows / 2 - (corres.y * constant) / corres.z;
+
+        paras.correspondence_[0] = u;
+        paras.correspondence_[1] = v;
+    }
 }
 
 

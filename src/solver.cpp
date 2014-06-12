@@ -18,7 +18,21 @@ Solver::~Solver()
 
 void Solver::initParameters()
 {
-
+    // rigid transformation
+    source_->rigid_rot_[0] = 0;
+    source_->rigid_trans_.setZero();
+    
+    //non-rigid transformation
+    PointCloud::DeformationGraph *graph = source_->getDeformationGraph();
+    ParameterMap *para_map = source_->getParameterMap();
+    GraphMap *graph_map = source_->getGraphMap();
+    for (PointCloud::DeformationGraph::NodeIt it(*graph); it != lemon::INVALID; ++ it) {
+        Parameters &paras = (*para_map)[it];
+        paras.affi_rot_.setIdentity();
+        paras.affi_trans_.setZero();
+        paras.correspondence_[2] = 1;      
+        source_->getCorrespondenceByKnn(it, target_); // knn for initial u, v
+    }
 }
 
 void Solver::buildProblem()
