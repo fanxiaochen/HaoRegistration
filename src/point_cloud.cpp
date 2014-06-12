@@ -1,6 +1,7 @@
 
 #include <opencv2/highgui/highgui.hpp>
 #include <pcl/features/normal_3d.h>
+#include <pcl/kdtree/kdtree_flann.h>
 
 #include "point_cloud.h"
 
@@ -322,17 +323,15 @@ void PointCloud::setColor(size_t r, size_t g, size_t b)
     return;
 }
 
-void PointCloud::getCorrespondenceByKnn(const DeformationGraph::Node &node, PointCloud *target)
+void PointCloud::getCorrespondenceByKnn(const DeformationGraph::Node &node, pcl::KdTree<Point>::PointCloudConstPtr& cloud, PointCloud *target)
 {
-    Parameters paras = (*parameter_map_)[node];
+    Parameters& paras = (*parameter_map_)[node];
     Point &point = at((*graph_map_)[node]);
     
     int rows = target->getDepthMap().rows;
     int cols = target->getDepthMap().cols;
 
     pcl::KdTreeFLANN<Point> kdtree;
-    pcl::PointCloud<Point>::Ptr cloud(target);
-
     kdtree.setInputCloud(cloud);
 
     // K nearest neighbor search
@@ -343,7 +342,7 @@ void PointCloud::getCorrespondenceByKnn(const DeformationGraph::Node &node, Poin
     std::vector<float> pointNKNSquaredDistance(K);
 
     if (kdtree.nearestKSearch(point, K, pointIdxNKNSearch, pointNKNSquaredDistance) > 0) {
-        Point &corres = points[pointIdxNKNSearch[0]];
+        Point &corres = target->at(pointIdxNKNSearch[0]);
 
         // from (x, y ,z) to (u, v)
         float constant = 575.8; // kinect focal length: 575.8
