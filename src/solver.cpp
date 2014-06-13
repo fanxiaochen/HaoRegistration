@@ -32,7 +32,9 @@ void Solver::initParameters()
         paras.affi_trans_.setZero();
         paras.correspondence_[2] = 1;
     }
-    source_->getCorrespondenceByKnn(target_); // knn for initial u, v
+    pcl::PointCloud<Point>::Ptr target_knn(new pcl::PointCloud<Point>);
+    target_knn->insert(target_knn->begin(), target_->begin(), target_->end());
+    source_->getCorrespondenceByKnn(target_knn, target_); // knn for initial u, v
 }
 
 void Solver::buildProblem()
@@ -62,8 +64,9 @@ void Solver::buildProblem()
         //third energy term
         Eigen::Vector3d point = EIGEN_POINT_CAST(source_->at((*graph_map)[it]));
         Eigen::Vector3d mass_center = source_->getMassCenter();
+        cv::Mat& depth_map = target_->getDepthMap();
         CostFunction *fit_function = new ceres::NumericDiffCostFunction<FitFunctor, ceres::CENTRAL, 3, 2, 3, 3, 9, 3>(
-            new FitFunctor(fit_alpha_, point, mass_center, &(target_->getDepthMap())));
+            new FitFunctor(fit_alpha_, point, mass_center, &depth_map));
         problem_.AddResidualBlock(fit_function, NULL, paras.correspondence_.data(),
                                   source_->rigid_rot_.data(), source_->rigid_trans_.data(),
                                   paras.affi_rot_.data(), paras.affi_trans_.data());

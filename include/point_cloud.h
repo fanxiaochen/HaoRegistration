@@ -66,7 +66,7 @@ public:
     
     void setColor(size_t r, size_t g, size_t b);
     
-    void getCorrespondenceByKnn(PointCloud* target);
+    void getCorrespondenceByKnn(pcl::PointCloud<Point>::Ptr target_knn, PointCloud* target);
     
 private:
     virtual void sampling();

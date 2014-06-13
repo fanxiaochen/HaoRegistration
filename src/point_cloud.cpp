@@ -323,14 +323,15 @@ void PointCloud::setColor(size_t r, size_t g, size_t b)
     return;
 }
 
-void PointCloud::getCorrespondenceByKnn(PointCloud *target)
+void PointCloud::getCorrespondenceByKnn(pcl::PointCloud<Point>::Ptr target_knn, PointCloud* target)
 {
     int rows = target->getDepthMap().rows;
     int cols = target->getDepthMap().cols;
-
+    
+    // Attention here: when deleting the smart pointer, the target will also be released!
+    // that's why I copied the target
     pcl::KdTreeFLANN<Point> kdtree;
-    PointCloud::Ptr cloud(target);
-    kdtree.setInputCloud(cloud);
+    kdtree.setInputCloud(target_knn);
 
     // K nearest neighbor search
 
@@ -344,7 +345,7 @@ void PointCloud::getCorrespondenceByKnn(PointCloud *target)
         std::vector<float> pointNKNSquaredDistance(K);
 
         if (kdtree.nearestKSearch(point, K, pointIdxNKNSearch, pointNKNSquaredDistance) > 0) {
-            Point &corres = target->at(pointIdxNKNSearch[0]);
+            Point &corres = target_knn->at(pointIdxNKNSearch[0]);
 
             // from (x, y ,z) to (u, v)
             float constant = 575.8; // kinect focal length: 575.8
@@ -355,7 +356,6 @@ void PointCloud::getCorrespondenceByKnn(PointCloud *target)
             paras.correspondence_[0] = u;
             paras.correspondence_[1] = v;
         }
-
     }
 
     return;
