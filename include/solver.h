@@ -183,8 +183,18 @@ public:
     void initForTest();
     void initParameters();
     void buildProblem();
-    void setOptions();  
+    void setOptions(); 
+    
+    void step();
     void apply();
+    
+    inline PointCloud* getSource(){
+        return source_;
+    }
+    
+    inline PointCloud* getTarget(){
+        return target_;
+    }
     
     void printParameters();
 

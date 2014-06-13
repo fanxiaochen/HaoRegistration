@@ -1,7 +1,7 @@
 #ifndef VISUALIZER_H
 #define VISUALIZER_H
 
-#include <osgViewer/Viewer>
+#include <osg/Geode>
 
 #include "point_cloud.h"
 
@@ -10,19 +10,22 @@ class Visualizer
 public:
     Visualizer();
     ~Visualizer();
-
-    void init();
     
-    void drawPointCloud(PointCloud *point_cloud);
-    void drawGraph(PointCloud *point_cloud);
-
-    void visualize();
+    void addPointCloud(PointCloud *point_cloud);
+    void addGraph(PointCloud *point_cloud); 
+    void removePointCloud(PointCloud* point_cloud);
+    void updatePointCloud(PointCloud* point_cloud);
  
     void closeLight();
+    
+    inline osg::ref_ptr<osg::Group> getSceneRoot(){
+        return scene_root_;
+    }
 
 private:
-    osgViewer::Viewer *viewer_;
-    osg::ref_ptr<osg::Group> scene_root_;
+    osg::ref_ptr<osg::Group> scene_root_;  
+    std::map<PointCloud*, osg::Geode*> index_map_; // be careful, memory address mapping
+    
 };
 
 #endif //VISUALIZER_H

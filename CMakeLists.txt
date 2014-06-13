@@ -24,13 +24,17 @@ set(srcs    src/main.cpp
             src/graph_map.cpp
             src/parameter_map.cpp
             src/solver.cpp
-            src/visualizer.cpp)
+            src/visualizer.cpp
+            src/event_handler.cpp
+            src/scene_viewer.cpp)
             
 set(incs    include/point_cloud.h
             include/graph_map.h
             include/parameter_map.h
             include/solver.h
-            include/visualizer.h)
+            include/visualizer.h
+            include/event_handler.h
+            include/scene_viewer.h)
 
 add_executable(HaoRegistration ${srcs} ${incs})
 

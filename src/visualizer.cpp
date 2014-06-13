@@ -1,13 +1,12 @@
-#include <osgGA/TrackballManipulator>
-#include <osgViewer/ViewerEventHandlers>
 #include <osg/Point>
 #include <osg/ShapeDrawable>
+#include <osg/Geometry>
 
 #include "visualizer.h"
 
 Visualizer::Visualizer()
-    : viewer_(new osgViewer::Viewer()),
-      scene_root_(new osg::Group())
+    : scene_root_(new osg::Group())
+   
 {
 
 }
@@ -17,17 +16,7 @@ Visualizer::~Visualizer()
 
 }
 
-void Visualizer::init()
-{
-    viewer_->setSceneData(scene_root_);
-    viewer_->getCamera()->setClearColor(osg::Vec4(1.0, 1.0, 1.0, 1.0));
-    viewer_->addEventHandler(new osgViewer::StatsHandler);
-    viewer_->setCameraManipulator(new osgGA::TrackballManipulator);
-// Use single thread here to avoid known issues under Linux
-    viewer_->setThreadingModel(osgViewer::Viewer::SingleThreaded);
-}
-
-void Visualizer::drawPointCloud(PointCloud *point_cloud)
+void Visualizer::addPointCloud(PointCloud *point_cloud)
 {
     osg::ref_ptr<osg::Vec3Array>  vertices = new osg::Vec3Array;
     osg::ref_ptr<osg::Vec3Array>  normals = new osg::Vec3Array;
@@ -54,14 +43,21 @@ void Visualizer::drawPointCloud(PointCloud *point_cloud)
     osg::ref_ptr<osg::Geode> geode = new osg::Geode();
     geode->addDrawable(geometry);
     scene_root_->addChild(geode);
-
+    index_map_.insert(std::make_pair<PointCloud*, osg::Geode*>(point_cloud, geode.get()));
+    
     return;
 }
 
-void Visualizer::drawGraph(PointCloud *point_cloud)
+void Visualizer::addGraph(PointCloud *point_cloud)
 {
     PointCloud::DeformationGraph* defo_graph = point_cloud->getDeformationGraph();
     GraphMap* graph_map = point_cloud->getGraphMap();
+    
+    osg::ref_ptr<osg::Group> nodes = new osg::Group();
+    osg::ref_ptr<osg::Group> edges = new osg::Group();
+    osg::ref_ptr<osg::Group> graph = new osg::Group();
+    graph->addChild(nodes);
+    graph->addChild(edges);
     
     for (PointCloud::DeformationGraph::NodeIt it(*defo_graph); it != lemon::INVALID; ++ it) {
         Point& point = point_cloud->at((*graph_map)[it]);
@@ -70,7 +66,7 @@ void Visualizer::drawGraph(PointCloud *point_cloud)
             new osg::Sphere(osg::Vec3(point.x, point.y, point.z), 1.0f));
         shape->setColor(osg::Vec4(0.8f, 0.8f, 0.4f, 1.0f));
         node->addDrawable(shape);
-        scene_root_->addChild(node);
+        nodes->addChild(node);
     } 
     
     for (PointCloud::DeformationGraph::EdgeIt it(*defo_graph); it != lemon::INVALID; ++ it) {
@@ -109,16 +105,25 @@ void Visualizer::drawGraph(PointCloud *point_cloud)
         osg::ref_ptr<osg::ShapeDrawable> shape = new osg::ShapeDrawable(cylinder);
         shape->setColor(osg::Vec4(0.8f, 0.8f, 0.4f, 1.0f));
         node->addDrawable(shape);
-        scene_root_->addChild(node);
+        edges->addChild(node);
     }
+    
+    scene_root_->addChild(graph);
      
     return;
 }
 
-
-void Visualizer::visualize()
+void Visualizer::removePointCloud(PointCloud* point_cloud)
 {
-    viewer_->run();
+    scene_root_->removeChild(index_map_[point_cloud]);
+    std::map<PointCloud*, osg::Geode*>::iterator itr = index_map_.find(point_cloud);
+    index_map_.erase(itr);
+}
+
+void Visualizer::updatePointCloud(PointCloud* point_cloud)
+{
+    removePointCloud(point_cloud);
+    addPointCloud(point_cloud);
 }
 
 void Visualizer::closeLight()
@@ -126,3 +131,5 @@ void Visualizer::closeLight()
     scene_root_->getOrCreateStateSet()->setMode(
         GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::PROTECTED);
 }
+
+

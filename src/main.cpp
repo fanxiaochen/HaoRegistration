@@ -2,6 +2,8 @@
 #include "point_cloud.h"
 #include "visualizer.h"
 #include "solver.h"
+#include "event_handler.h"
+#include "scene_viewer.h"
 
 int main()
 {
@@ -14,22 +16,26 @@ int main()
     source->setNodeNum(200);
     source->binding();
     
-//     Visualizer* visualizer = new Visualizer();
-//     visualizer->init();
-//     visualizer->closeLight();
-//     visualizer->drawPointCloud(source);
-//     visualizer->drawPointCloud(target);
-//     visualizer->drawGraph(source);
-//     visualizer->visualize();
-    
     Solver* solver = new Solver(source, target);
 //    solver->initParameters();
     solver->initForTest();
     solver->buildProblem();
     solver->setOptions();
-    solver->apply();
+//    solver->apply();    
+//    solver->printParameters();
+    source->update();
     
-    solver->printParameters();
+    Visualizer* visualizer = new Visualizer();
+    visualizer->closeLight();
+    visualizer->addPointCloud(source);
+    visualizer->addPointCloud(target);
+    visualizer->addGraph(source);
+    
+    EventHandler* event_handler = new EventHandler(solver, visualizer);
+    
+    SceneViewer* scene_viewer = new SceneViewer(visualizer, event_handler);
+    scene_viewer->init();
+    scene_viewer->start();
 
     return 0;
 }

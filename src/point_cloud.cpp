@@ -211,7 +211,20 @@ void PointCloud::transform(size_t index)
 {
     // normals, colors...
     Point point = globalTransform(localTransform(index));
-    at(index) = point;
+    at(index).x = point.x;
+    at(index).y = point.y;
+    at(index).z = point.z;
+}
+
+void PointCloud::update()
+{
+    for (size_t j = 0, j_end = size(); j < j_end; j ++) {
+        // how about normals?
+        at(j).x = localTransform(j).x;
+        at(j).y = localTransform(j).y;
+        at(j).z = localTransform(j).z;
+    }
+    return;
 }
 
 void PointCloud::setNodeNum(size_t node_num)
@@ -323,11 +336,11 @@ void PointCloud::setColor(size_t r, size_t g, size_t b)
     return;
 }
 
-void PointCloud::getCorrespondenceByKnn(pcl::PointCloud<Point>::Ptr target_knn, PointCloud* target)
+void PointCloud::getCorrespondenceByKnn(pcl::PointCloud<Point>::Ptr target_knn, PointCloud *target)
 {
     int rows = target->getDepthMap().rows;
     int cols = target->getDepthMap().cols;
-    
+
     // Attention here: when deleting the smart pointer, the target will also be released!
     // that's why I copied the target
     pcl::KdTreeFLANN<Point> kdtree;
@@ -360,5 +373,6 @@ void PointCloud::getCorrespondenceByKnn(pcl::PointCloud<Point>::Ptr target_knn, 
 
     return;
 }
+
 
 
