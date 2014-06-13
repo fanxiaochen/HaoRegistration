@@ -23,10 +23,13 @@ int main()
 //     visualizer->visualize();
     
     Solver* solver = new Solver(source, target);
-    solver->initParameters();
+//    solver->initParameters();
+    solver->initForTest();
     solver->buildProblem();
     solver->setOptions();
     solver->apply();
+    
+    solver->printParameters();
 
     return 0;
 }

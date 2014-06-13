@@ -12,6 +12,20 @@ public:
         affi_trans_.setZero();
         correspondence_.setZero();
     }
+    
+public:
+    void print(){
+        std::cout << "Affine Rotation: " << std::endl;
+        std::cout << affi_rot_ << std::endl;
+        
+        std::cout << "Affine Translation: " << std::endl;
+        std::cout << affi_trans_ << std::endl;
+        
+        std::cout << "Correspondence: " << std::endl;
+        std::cout << correspondence_ << std::endl;  
+        
+        std::cout << std::endl;
+    }
 
 public:
     Eigen::Matrix3d affi_rot_;

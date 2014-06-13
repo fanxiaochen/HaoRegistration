@@ -73,7 +73,8 @@ struct FitFunctor {
 
     template <typename T>
     bool operator()(const T *const plane_paras, const T *const rigid_rot, const T *const rigid_trans, 
-                    const T *const affi_rot, const T *const affi_trans, T *residual) const {
+                    const T *const affi_rot, const T *const affi_trans, 
+                    const T *const w, T *residual) const {
         T residual_1[3], residual_2[3];
         
         Eigen::Vector3d local_trans;
@@ -137,7 +138,7 @@ struct FitFunctor {
 //                                     delta_2(1), delta_2(2)) + _mass_center(2) + rigid_trans[2];
         
         for (size_t i = 0; i < 3; i ++) {
-            residual[i] = _coeff * (residual_1[i] - residual_2[i]);
+            residual[i] = _coeff * w[0] * (residual_1[i] - residual_2[i]);
         }
 
         return true;
@@ -178,11 +179,14 @@ public:
 public:
     Solver(PointCloud *source, PointCloud* target);
     ~Solver();
-
+    
+    void initForTest();
     void initParameters();
     void buildProblem();
     void setOptions();  
     void apply();
+    
+    void printParameters();
 
 private:
     PointCloud *source_;
