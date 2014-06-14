@@ -81,6 +81,7 @@ private:
 
     Point localTransform(size_t j);
     Point globalTransform(const Point &point);
+    bool isGraphNode(size_t j);
 
 public:
     Eigen::Vector3d rigid_rot_;  // axis-angle form, only need three parameters

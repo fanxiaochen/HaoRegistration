@@ -155,20 +155,37 @@ void PointCloud::smoothDependency()
     }
 }
 
+bool PointCloud::isGraphNode(size_t j)
+{
+    for (PointCloud::DeformationGraph::NodeIt it(*deformation_graph_); it != lemon::INVALID; ++ it) {
+        if ((*graph_map_)[it] == j)
+            return true;
+    }
+    return false;
+}
+
 Point PointCloud::localTransform(size_t j)
 {
     Eigen::Vector3d vector;
     vector.setZero();
     const Point &point = at(j);
     Eigen::Vector3d eigen_point = EIGEN_POINT_CAST(point);
-    for (size_t i = 0; i < k_; i ++) {
-        int pt_idx = (*nearest_neighbors_)[j][i];
-        const Point &node = at(pt_idx);
-        Eigen::Vector3d eigen_node = EIGEN_POINT_CAST(node);
-        Parameters parameters = (*parameter_map_)[(*graph_map_)[pt_idx]]; // too complicated map index...
-        vector += dependency_weights_(j, i) * (parameters.affi_rot_ * (eigen_point - eigen_node) +
-                  eigen_node + parameters.affi_trans_);
+
+    if (isGraphNode(j)) {
+        Parameters &parameters = (*parameter_map_)[(*graph_map_)[j]];
+        vector = eigen_point + parameters.affi_trans_;
+    } else {
+        for (size_t i = 0; i < k_; i ++) {
+            int pt_idx = (*nearest_neighbors_)[j][i];
+            const Point &node = at(pt_idx);
+            Eigen::Vector3d eigen_node = EIGEN_POINT_CAST(node);
+            Parameters &parameters = (*parameter_map_)[(*graph_map_)[pt_idx]]; // too complicated map index...
+            vector += dependency_weights_(j, i) * (parameters.affi_rot_ * (eigen_point - eigen_node) +
+                                                   eigen_node + parameters.affi_trans_);
+        }
+
     }
+
     return POINT_EIGEN_CAST(vector);
 }
 

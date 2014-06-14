@@ -31,6 +31,7 @@ bool EventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdap
             solver_->printParameters();
             source->update();
             visualizer_->updatePointCloud(source);
+            visualizer_->updateGraph(source);
             
             break;
         }

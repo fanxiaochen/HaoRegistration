@@ -29,9 +29,9 @@ void Solver::initForTest()
     for (PointCloud::DeformationGraph::NodeIt it(*graph); it != lemon::INVALID; ++ it) {
         Parameters &paras = (*para_map)[it];
       //  paras.affi_rot_ = Eigen::MatrixXd::Random(3, 3);
-        paras.affi_rot_(0,0) = -0.4;
-        paras.affi_rot_(1,1) = -0.4;
-        paras.affi_rot_(2,2) = -0.4;
+        paras.affi_rot_(0,0) = -13.4;
+        paras.affi_rot_(1,1) = 90.4;
+        paras.affi_rot_(2,2) = 0.4;
         
         paras.affi_trans_.setZero();
     }
@@ -72,16 +72,16 @@ void Solver::buildProblem()
             new RigidFunctor(rigid_alpha_));
         problem_.AddResidualBlock(rigid_function, NULL, paras.affi_rot_.data());
 
-//         //second energy term
-//         Eigen::Vector3d m_point = EIGEN_POINT_CAST(source_->at((*graph_map)[it]));
-//         for (PointCloud::DeformationGraph::IncEdgeIt e(*graph, it); e != lemon::INVALID; ++ e) {
-//             PointCloud::DeformationGraph::Node node = graph->target(e);
-//             Eigen::Vector3d s_point = EIGEN_POINT_CAST(source_->at((*graph_map)[node]));
-//             CostFunction *smooth_function = new ceres::AutoDiffCostFunction<SmoothFunctor, 3, 9, 3, 3>(
-//                 new SmoothFunctor(smooth_alpha_, m_point, s_point));
-//             problem_.AddResidualBlock(smooth_function, NULL, paras.affi_rot_.data(),
-//                                       paras.affi_trans_.data(), (*para_map)[node].affi_trans_.data());
-//         }
+        //second energy term
+        Eigen::Vector3d m_point = EIGEN_POINT_CAST(source_->at((*graph_map)[it]));
+        for (PointCloud::DeformationGraph::IncEdgeIt e(*graph, it); e != lemon::INVALID; ++ e) {
+            PointCloud::DeformationGraph::Node node = graph->target(e);
+            Eigen::Vector3d s_point = EIGEN_POINT_CAST(source_->at((*graph_map)[node]));
+            CostFunction *smooth_function = new ceres::AutoDiffCostFunction<SmoothFunctor, 3, 9, 3, 3>(
+                new SmoothFunctor(smooth_alpha_, m_point, s_point));
+            problem_.AddResidualBlock(smooth_function, NULL, paras.affi_rot_.data(),
+                                      paras.affi_trans_.data(), (*para_map)[node].affi_trans_.data());
+        }
 
 //         //third energy term
 //         Eigen::Vector3d point = EIGEN_POINT_CAST(source_->at((*graph_map)[it]));
@@ -93,7 +93,7 @@ void Solver::buildProblem()
 //                                   source_->rigid_rot_.data(), source_->rigid_trans_.data(),
 //                                   paras.affi_rot_.data(), paras.affi_trans_.data(),
 //                                   paras.correspondence_.data()+2);
-
+// 
 //         //forth energy term
 //         CostFunction *conf_function = new ceres::AutoDiffCostFunction<ConfFunctor, 1, 1>(
 //             new ConfFunctor(conf_alpha_));

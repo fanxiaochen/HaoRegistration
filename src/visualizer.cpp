@@ -43,7 +43,7 @@ void Visualizer::addPointCloud(PointCloud *point_cloud)
     osg::ref_ptr<osg::Geode> geode = new osg::Geode();
     geode->addDrawable(geometry);
     scene_root_->addChild(geode);
-    index_map_.insert(std::make_pair<PointCloud*, osg::Geode*>(point_cloud, geode.get()));
+    cloud_map_.insert(std::make_pair<PointCloud*, osg::Geode*>(point_cloud, geode.get()));
     
     return;
 }
@@ -109,21 +109,41 @@ void Visualizer::addGraph(PointCloud *point_cloud)
     }
     
     scene_root_->addChild(graph);
+    graph_map_.insert(std::make_pair<PointCloud*, osg::Group*>(point_cloud, graph.get()));
      
     return;
 }
 
 void Visualizer::removePointCloud(PointCloud* point_cloud)
 {
-    scene_root_->removeChild(index_map_[point_cloud]);
-    std::map<PointCloud*, osg::Geode*>::iterator itr = index_map_.find(point_cloud);
-    index_map_.erase(itr);
+    if (cloud_map_.find(point_cloud) == cloud_map_.end())
+        return;
+    
+    scene_root_->removeChild(cloud_map_[point_cloud]);
+    std::map<PointCloud*, osg::Geode*>::iterator itr = cloud_map_.find(point_cloud);
+    cloud_map_.erase(itr);
+}
+
+void Visualizer::removeGraph(PointCloud* point_cloud)
+{
+    if (graph_map_.find(point_cloud) == graph_map_.end())
+        return;
+    
+    scene_root_->removeChild(graph_map_[point_cloud]);
+    std::map<PointCloud*, osg::Group*>::iterator itr = graph_map_.find(point_cloud);
+    graph_map_.erase(itr);
 }
 
 void Visualizer::updatePointCloud(PointCloud* point_cloud)
 {
     removePointCloud(point_cloud);
     addPointCloud(point_cloud);
+}
+
+void Visualizer::updateGraph(PointCloud* point_cloud)
+{
+    removeGraph(point_cloud);
+    addGraph(point_cloud);
 }
 
 void Visualizer::closeLight()
