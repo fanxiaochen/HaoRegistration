@@ -10,10 +10,10 @@ int main()
     PointCloud* source = new PointCloud();
     PointCloud* target = new PointCloud();
     source->load("/home/xiaochenfan/images/0.png", false);
-    target->load("/home/xiaochenfan/images/5.png");
+    target->load("/home/xiaochenfan/images/5.png", false);
     source->setColor(121, 5, 237);
     target->setColor(121, 237, 5);
-    source->setNodeNum(100);
+    source->setNodeNum(200);
     source->binding();
     source->smoothDependency();
     
@@ -30,7 +30,7 @@ int main()
     visualizer->closeLight();
     visualizer->addPointCloud(source);
     visualizer->addPointCloud(target);
-    visualizer->addGraph(source);
+  //  visualizer->addGraph(source);
     
     EventHandler* event_handler = new EventHandler(solver, visualizer);
     

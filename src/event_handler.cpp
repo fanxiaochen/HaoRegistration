@@ -28,10 +28,10 @@ bool EventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdap
         case 'R': {   
             PointCloud* source = solver_->getSource();
             solver_->apply();
-            solver_->printParameters();
+         //   solver_->printParameters();
             source->update();
             visualizer_->updatePointCloud(source);
-            visualizer_->updateGraph(source);
+          //  visualizer_->updateGraph(source);
             
             break;
         }
