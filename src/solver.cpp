@@ -51,7 +51,7 @@ void Solver::initParameters()
     for (PointCloud::DeformationGraph::NodeIt it(*graph); it != lemon::INVALID; ++ it) {
         Parameters &paras = (*para_map)[it];
         paras.affi_rot_.setIdentity();
-        paras.affi_trans_.setZero();
+    //    paras.affi_trans_.setZero();
         paras.correspondence_[2] = 1;
     }
     pcl::PointCloud<Point>::Ptr target_knn(new pcl::PointCloud<Point>);

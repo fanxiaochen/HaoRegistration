@@ -388,6 +388,8 @@ void PointCloud::getCorrespondenceByKnn(pcl::PointCloud<Point>::Ptr target_knn, 
 
             paras.correspondence_[0] = u;
             paras.correspondence_[1] = v;
+            
+            paras.affi_trans_ = EIGEN_POINT_CAST(corres) - EIGEN_POINT_CAST(point);
         }
     }
 
