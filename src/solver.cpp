@@ -83,16 +83,16 @@ void Solver::buildProblem()
                                       paras.affi_trans_.data(), (*para_map)[node].affi_trans_.data());
         }
 
-//         //third energy term
-//         Eigen::Vector3d point = EIGEN_POINT_CAST(source_->at((*graph_map)[it]));
-//         Eigen::Vector3d mass_center = source_->getMassCenter();
-//         cv::Mat& depth_map = target_->getDepthMap();
-//         CostFunction *fit_function = new ceres::NumericDiffCostFunction<FitFunctor, ceres::CENTRAL, 3, 2, 3, 3, 9, 3, 1>(
-//             new FitFunctor(fit_alpha_, point, mass_center, &depth_map));
-//         problem_.AddResidualBlock(fit_function, NULL, paras.correspondence_.data(),
-//                                   source_->rigid_rot_.data(), source_->rigid_trans_.data(),
-//                                   paras.affi_rot_.data(), paras.affi_trans_.data(),
-//                                   paras.correspondence_.data()+2);
+        //third energy term
+        Eigen::Vector3d point = EIGEN_POINT_CAST(source_->at((*graph_map)[it]));
+        Eigen::Vector3d mass_center = source_->getMassCenter();
+        cv::Mat& depth_map = target_->getDepthMap();
+        CostFunction *fit_function = new ceres::NumericDiffCostFunction<FitFunctor, ceres::CENTRAL, 3, 2, 3, 3, 9, 3, 1>(
+            new FitFunctor(fit_alpha_, point, mass_center, &depth_map));
+        problem_.AddResidualBlock(fit_function, NULL, paras.correspondence_.data(),
+                                  source_->rigid_rot_.data(), source_->rigid_trans_.data(),
+                                  paras.affi_rot_.data(), paras.affi_trans_.data(),
+                                  paras.correspondence_.data()+2);
 // 
 //         //forth energy term
 //         CostFunction *conf_function = new ceres::AutoDiffCostFunction<ConfFunctor, 1, 1>(

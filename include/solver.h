@@ -78,12 +78,9 @@ struct FitFunctor {
         T residual_1[3], residual_2[3];
         
         Eigen::Vector3d local_trans;
-        local_trans[0] = INNER_PRODUCT(affi_rot[0], affi_rot[3], affi_rot[6], _point(0), _point(1), _point(2))
-        + affi_trans[0];
-        local_trans[0] = INNER_PRODUCT(affi_rot[1], affi_rot[4], affi_rot[7], _point(0), _point(1), _point(2))
-        + affi_trans[1];
-        local_trans[0] = INNER_PRODUCT(affi_rot[2], affi_rot[5], affi_rot[8], _point(0), _point(1), _point(2))
-        + affi_trans[2];
+        local_trans[0] = _point(0) + affi_trans[0];
+        local_trans[1] = _point(1) + affi_trans[1];
+        local_trans[2] = _point(2) + affi_trans[2];
         
         T theta = rigid_rot[0];
         T x = rigid_rot[1];
@@ -101,7 +98,6 @@ struct FitFunctor {
         r[8] = cos(theta) + (T(1) - cos(theta)) * z * z;
 
         Eigen::Vector3d delta_1 = local_trans - _mass_center;
-        // lack of correspondences, not finished yet
         residual_1[0] = INNER_PRODUCT(r[0], r[3], r[6], delta_1(0), 
                                     delta_1(1), delta_1(2)) + _mass_center(0) + rigid_trans[0];
         residual_1[1] = INNER_PRODUCT(r[1], r[4], r[7], delta_1(0), 
@@ -138,7 +134,7 @@ struct FitFunctor {
 //                                     delta_2(1), delta_2(2)) + _mass_center(2) + rigid_trans[2];
         
         for (size_t i = 0; i < 3; i ++) {
-            residual[i] = _coeff * w[0] * (residual_1[i] - residual_2[i]);
+            residual[i] = _coeff * (residual_1[i] - residual_2[i]);
         }
 
         return true;

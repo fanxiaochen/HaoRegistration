@@ -13,13 +13,13 @@ int main()
     target->load("/home/xiaochenfan/images/5.png");
     source->setColor(121, 5, 237);
     target->setColor(121, 237, 5);
-    source->setNodeNum(300);
+    source->setNodeNum(100);
     source->binding();
     source->smoothDependency();
     
     Solver* solver = new Solver(source, target);
- //   solver->initParameters();
-    solver->initForTest();
+    solver->initParameters();
+ //   solver->initForTest();
     solver->buildProblem();
     solver->setOptions();
 //    solver->apply();    
@@ -29,7 +29,7 @@ int main()
     Visualizer* visualizer = new Visualizer();
     visualizer->closeLight();
     visualizer->addPointCloud(source);
- //   visualizer->addPointCloud(target);
+    visualizer->addPointCloud(target);
     visualizer->addGraph(source);
     
     EventHandler* event_handler = new EventHandler(solver, visualizer);
