@@ -29,8 +29,8 @@ int main()
     Visualizer* visualizer = new Visualizer();
     visualizer->closeLight();
     visualizer->addPointCloud(source);
-    visualizer->addPointCloud(target);
-    visualizer->addGraph(source);
+ //   visualizer->addPointCloud(target);
+  //  visualizer->addGraph(source);
     
     EventHandler* event_handler = new EventHandler(solver, visualizer);
     

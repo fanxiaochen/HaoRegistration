@@ -139,14 +139,13 @@ void PointCloud::smoothDependency()
     dependency_weights_.resize(size(), k_);
 
     for (size_t j = 0, j_end = size(); j < j_end; j ++) {
-        double d_max = (*neighbor_dists_)[j][k - 1]; // last one is the max?
+        double d_max = sqrt((*neighbor_dists_)[j][k - 1]); // last one is the max?
         const Point &point = at(j);
         double numerator[k_];
         double denominator = 0;
         for (size_t i = 0; i < k_; i ++) {
-            const Point &node = at((*nearest_neighbors_)[j][i]);
-            Eigen::Vector3d vector = EIGEN_POINT_CAST(point) - EIGEN_POINT_CAST(node);
-            numerator[i] = 1 - vector.norm() / d_max;
+            double dist = sqrt((*neighbor_dists_)[j][i]);
+            numerator[i] = 1 - dist / d_max;
             denominator += numerator[i];
         }
 
@@ -167,8 +166,8 @@ Point PointCloud::localTransform(size_t j)
         const Point &node = at(pt_idx);
         Eigen::Vector3d eigen_node = EIGEN_POINT_CAST(node);
         Parameters parameters = (*parameter_map_)[(*graph_map_)[pt_idx]]; // too complicated map index...
-        vector += dependency_weights_(j, i) * parameters.affi_rot_ * (eigen_point - eigen_node) +
-                  eigen_node + parameters.affi_trans_;
+        vector += dependency_weights_(j, i) * (parameters.affi_rot_ * (eigen_point - eigen_node) +
+                  eigen_node + parameters.affi_trans_);
     }
     return POINT_EIGEN_CAST(vector);
 }
@@ -324,7 +323,7 @@ void PointCloud::kNearestSearch(const int k)
     }
 
     nearest_neighbors_ = new flann::Matrix<int>(indices.ptr(), indices.rows, indices.cols);
-    neighbor_dists_ = new flann::Matrix<double>(dists.ptr(), dists.rows, dists.cols);
+    neighbor_dists_ = new flann::Matrix<double>(dists.ptr(), dists.rows, dists.cols); // square distance
 
 }
 
