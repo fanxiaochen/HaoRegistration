@@ -25,7 +25,7 @@ public:
     void load(const std::string &file, bool flag = true); // true for structured, false for unstructured
     Point getPointFromDepthMap(int u, int v);
 
-    void binding();
+    void binding(); // construct deformation graph
 
     void setNodeNum(size_t node_num);
 
@@ -68,6 +68,7 @@ public:
     void setColor(size_t r, size_t g, size_t b);
     
     void getCorrespondenceByKnn(pcl::PointCloud<Point>::Ptr target_knn, PointCloud* target);
+    void smoothDependency();
     
 private:
     virtual void sampling();
@@ -77,7 +78,6 @@ private:
     void kNearestSearch(const int k);
     void evaluateNormal();
     void evaluateMassCenter();
-    void computeDependencyWeights();
 
     Point localTransform(size_t j);
     Point globalTransform(const Point &point);

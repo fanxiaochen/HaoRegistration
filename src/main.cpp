@@ -15,6 +15,7 @@ int main()
     target->setColor(121, 237, 5);
     source->setNodeNum(200);
     source->binding();
+    source->smoothDependency();
     
     Solver* solver = new Solver(source, target);
 //    solver->initParameters();
@@ -23,7 +24,7 @@ int main()
     solver->setOptions();
 //    solver->apply();    
 //    solver->printParameters();
-    source->update();
+ //   source->update();
     
     Visualizer* visualizer = new Visualizer();
     visualizer->closeLight();

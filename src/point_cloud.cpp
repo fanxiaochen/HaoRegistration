@@ -132,13 +132,14 @@ void PointCloud::evaluateMassCenter()
     mass_center_(2) = center.z;
 }
 
-void PointCloud::computeDependencyWeights()
+void PointCloud::smoothDependency()
 {
     const int k = k_ + 1;
     kNearestSearch(k);
+    dependency_weights_.resize(size(), k_);
 
     for (size_t j = 0, j_end = size(); j < j_end; j ++) {
-        double d_max = (*neighbor_dists_)[j][k - 1];
+        double d_max = (*neighbor_dists_)[j][k - 1]; // last one is the max?
         const Point &point = at(j);
         double numerator[k_];
         double denominator = 0;
@@ -158,12 +159,14 @@ void PointCloud::computeDependencyWeights()
 Point PointCloud::localTransform(size_t j)
 {
     Eigen::Vector3d vector;
+    vector.setZero();
     const Point &point = at(j);
     Eigen::Vector3d eigen_point = EIGEN_POINT_CAST(point);
     for (size_t i = 0; i < k_; i ++) {
-        const Point &node = at((*nearest_neighbors_)[j][i]);
+        int pt_idx = (*nearest_neighbors_)[j][i];
+        const Point &node = at(pt_idx);
         Eigen::Vector3d eigen_node = EIGEN_POINT_CAST(node);
-        Parameters parameters = (*parameter_map_)[(*graph_map_)[i]]; // too complicated map index...
+        Parameters parameters = (*parameter_map_)[(*graph_map_)[pt_idx]]; // too complicated map index...
         vector += dependency_weights_(j, i) * parameters.affi_rot_ * (eigen_point - eigen_node) +
                   eigen_node + parameters.affi_trans_;
     }
@@ -220,9 +223,10 @@ void PointCloud::update()
 {
     for (size_t j = 0, j_end = size(); j < j_end; j ++) {
         // how about normals?
-        at(j).x = localTransform(j).x;
-        at(j).y = localTransform(j).y;
-        at(j).z = localTransform(j).z;
+        Point point = localTransform(j);
+        at(j).x = point.x;
+        at(j).y = point.y;
+        at(j).z = point.z;
     }
     return;
 }
